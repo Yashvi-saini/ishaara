@@ -2,6 +2,7 @@ export interface PublicConfig {
   demoMode: boolean;
   ringMs: number;
   cameraCooldownMs: number;
+  phoneCalls: boolean;
 }
 
 export interface HealthResponse {
@@ -65,6 +66,7 @@ export interface RingAttempt {
   endedAt: number | null;
   outcome: RingOutcome;
   reached: boolean;
+  channels: string[];
 }
 
 export interface Alert {

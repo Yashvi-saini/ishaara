@@ -109,7 +109,9 @@ export function createEscalationEngine(deps: EscalationDeps): EscalationEngine {
 
     const startedAt = clock.now();
     const request: RingRequest = { guard, alert, startedAt, endsAt: startedAt + ringMs };
-    const reached = channels.map((channel) => ringOn(channel, request)).some(Boolean);
+    const reachedBy = channels
+      .filter((channel) => ringOn(channel, request))
+      .map((channel) => channel.name);
 
     const updated = store.updateAlert(alert.id, (current) => ({
       ...current,
@@ -124,7 +126,8 @@ export function createEscalationEngine(deps: EscalationDeps): EscalationEngine {
           endsAt: request.endsAt,
           endedAt: null,
           outcome: "ringing",
-          reached,
+          reached: reachedBy.length > 0,
+          channels: reachedBy,
         },
       ],
     }));
@@ -198,6 +201,7 @@ export function createEscalationEngine(deps: EscalationDeps): EscalationEngine {
                   endedAt: now,
                   outcome: "confirmed",
                   reached: true,
+                  channels: [],
                 },
               ],
         };

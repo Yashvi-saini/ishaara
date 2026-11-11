@@ -109,6 +109,7 @@ describe("escalation engine", () => {
           endedAt: null,
           outcome: "ringing",
           reached: true,
+          channels: ["test"],
         },
       ]);
     });
