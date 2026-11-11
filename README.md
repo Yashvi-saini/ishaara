@@ -6,6 +6,12 @@ Ishaara lets a woman ask for help silently, with one hand sign, using cameras th
 
 Built for HerHack 2026 (Student Innovation track).
 
+**Live demo:** not deployed yet. See [Deploy](#deploy).
+
+| Security dashboard                                                                   | Guard app, ringing                                                           | Guard app, responding                                                                  |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| ![Ishaara Command while a guard is being rung](docs/screenshots/command-ringing.png) | ![Full-screen ring on the guard's phone](docs/screenshots/guard-ringing.png) | ![Guard responding, with guidance and Call 112](docs/screenshots/guard-responding.png) |
+
 ## Status
 
 Work in progress. The project is built in phases; this list is updated as each one lands.
@@ -16,7 +22,7 @@ Work in progress. The project is built in phases; this list is updated as each o
 - [x] Phase 3: design system and Ishaara Eye
 - [x] Phase 4: Ishaara Command and the Guard app, installable as a progressive web app
 - [x] Phase 5: Learn and Home
-- [ ] Phase 6: polish and deploy
+- [ ] Phase 6: polish and deploy (render.yaml and demo script ready; waiting for the Render service)
 
 ## How it works
 
@@ -79,9 +85,34 @@ docs              Architecture notes and the demo script
 
 Ishaara is a progressive web app. On a phone, open `/guard` in Chrome and use "Install the Guard app on this phone" or the browser's "Add to home screen". On a laptop, use the install icon in the address bar. Installing needs https, so use the deployed link (or `localhost` on the same machine).
 
+## Deploy
+
+Ishaara deploys as one Render web service: the Node server serves the API, Socket.io and the built web app. The configuration is in [render.yaml](render.yaml).
+
+1. In Render, choose **New** → **Blueprint** and pick this repository.
+2. Render reads `render.yaml`, builds with `pnpm build` and starts with `pnpm start`. The health check is `/api/health`.
+3. When the service is live, open `https://<service-name>.onrender.com`.
+
+`DEMO_MODE` is `true` in `render.yaml`. Set it to `false` in the Render dashboard for realistic timings. The free plan sleeps after 15 minutes without traffic, so open the site a minute before a demo. Alerts are kept in memory and are cleared when the service restarts.
+
+## Demo
+
+[docs/demo-script.md](docs/demo-script.md) has the setup and a timed script for a 2-minute demo video. On the Eye page in demo mode, Shift+S simulates a signal as a backup.
+
 ## Settings
 
 All settings are environment variables, documented in [.env.example](.env.example). `DEMO_MODE=true` shortens the timers for presentations.
+
+## Architecture
+
+[docs/architecture.md](docs/architecture.md) covers the gesture rules and state machine, the camera page and its Web Worker, the REST and Socket.io API, the escalation engine, the PWA, and the design system.
+
+```
+/eye (browser)                 server (Node)                       /command, /guard (browsers)
+camera -> MediaPipe worker     POST /api/alerts -> store           alert:new, alert:update
+       -> signal detector  --> escalation engine rings guards  --> guard:ring -> "I'm going"
+       -> one snapshot         one at a time, nearest first    <-- guard:ack
+```
 
 ## Privacy
 
