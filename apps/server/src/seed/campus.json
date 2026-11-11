@@ -1,0 +1,139 @@
+{
+  "campus": {
+    "name": "Demo campus",
+    "map": {
+      "width": 1000,
+      "height": 600,
+      "buildings": [
+        {
+          "id": "library",
+          "label": "Library",
+          "kind": "building",
+          "x": 110,
+          "y": 90,
+          "width": 200,
+          "height": 120
+        },
+        {
+          "id": "academic",
+          "label": "Academic block",
+          "kind": "building",
+          "x": 390,
+          "y": 200,
+          "width": 240,
+          "height": 150
+        },
+        {
+          "id": "hostel",
+          "label": "Girls' hostel",
+          "kind": "building",
+          "x": 720,
+          "y": 60,
+          "width": 190,
+          "height": 130
+        },
+        {
+          "id": "canteen",
+          "label": "Canteen",
+          "kind": "building",
+          "x": 720,
+          "y": 250,
+          "width": 150,
+          "height": 100
+        },
+        {
+          "id": "parking",
+          "label": "Parking",
+          "kind": "parking",
+          "x": 100,
+          "y": 410,
+          "width": 230,
+          "height": 120
+        },
+        {
+          "id": "gate",
+          "label": "Main gate",
+          "kind": "gate",
+          "x": 455,
+          "y": 552,
+          "width": 90,
+          "height": 20
+        }
+      ],
+      "roads": [
+        [
+          [500, 552],
+          [500, 380]
+        ],
+        [
+          [140, 380],
+          [900, 380]
+        ],
+        [
+          [210, 380],
+          [210, 210]
+        ],
+        [
+          [680, 380],
+          [680, 125],
+          [720, 125]
+        ]
+      ]
+    }
+  },
+  "cameras": [
+    {
+      "id": "cam-1",
+      "name": "Main gate",
+      "label": "Main gate, camera 1",
+      "zone": "Gate and parking",
+      "x": 500,
+      "y": 532
+    },
+    {
+      "id": "cam-2",
+      "name": "Library",
+      "label": "Library, camera 2",
+      "zone": "Academic area",
+      "x": 240,
+      "y": 226
+    },
+    {
+      "id": "cam-3",
+      "name": "Girls' hostel entrance",
+      "label": "Girls' hostel entrance, camera 3",
+      "zone": "Hostels and canteen",
+      "x": 704,
+      "y": 125
+    },
+    {
+      "id": "cam-4",
+      "name": "Parking",
+      "label": "Parking, camera 4",
+      "zone": "Gate and parking",
+      "x": 330,
+      "y": 396
+    },
+    {
+      "id": "cam-5",
+      "name": "Academic block",
+      "label": "Academic block, camera 5",
+      "zone": "Academic area",
+      "x": 540,
+      "y": 364
+    },
+    {
+      "id": "cam-6",
+      "name": "Canteen",
+      "label": "Canteen, camera 6",
+      "zone": "Hostels and canteen",
+      "x": 770,
+      "y": 364
+    }
+  ],
+  "guards": [
+    { "id": "guard-1", "name": "Ramesh Kumar", "zone": "Gate and parking", "x": 470, "y": 500 },
+    { "id": "guard-2", "name": "Sunita Devi", "zone": "Hostels and canteen", "x": 700, "y": 220 },
+    { "id": "guard-3", "name": "Anil Yadav", "zone": "Academic area", "x": 350, "y": 310 }
+  ]
+}
