@@ -110,4 +110,6 @@ Use:
 4. `/command` and `/guard`: the full end-to-end flow.
 5. `/learn` and `/`.
 6. Polish and deploy to Render as a single web service (`render.yaml`); final README; `docs/demo-script.md`.
-7. Only if time remains: Twilio voice calls as a second ringing channel, with graceful fallback when the env vars are missing.
+7. Twilio voice calls as a second ringing channel, with graceful fallback when the env vars are missing. Done.
+
+All phases are built. The only remaining step is creating the Render service from `render.yaml`.

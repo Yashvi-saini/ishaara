@@ -62,6 +62,25 @@ main thread                                      Web Worker
 
 If the connection drops, the page says so and rejoins the shift when it reconnects, picking up any ring already in progress.
 
+## Phone calls (optional)
+
+`src/services/twilio.ts` is a second ring channel next to the Guard app. It is switched on only when `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, a public address (`PUBLIC_URL`, or Render's `RENDER_EXTERNAL_URL`) and at least one number in `GUARD_PHONES` are set. Otherwise the server logs that phone calls are off and nothing else changes.
+
+```
+engine rings guard --> Guard app (Socket.io)                        guard taps "I'm going" --> guard:ack
+                   --> Twilio REST: create call with TwiML <Gather>
+                         "Silent help signal at Parking, camera 4. Press 1 if you are going."
+                         guard presses 1 --> POST /api/twilio/gather --> engine.acknowledge
+ring ends or someone confirms --> Twilio REST: hang up the call
+```
+
+- Calls use Twilio's REST API directly with `fetch`; there is no SDK dependency.
+- The webhook `POST /api/twilio/gather?alert=…&guard=…` checks the `X-Twilio-Signature` header (HMAC-SHA1 with the auth token) and answers with TwiML.
+- If a ring stops before Twilio has returned the call id, the call is hung up as soon as the id arrives.
+- A failed call is logged and the chain carries on through the Guard app.
+- Each ring attempt records the channels that reached the guard (`guard-app`, `phone`), which the ring timeline shows.
+- Guard numbers live only in server settings and never appear in `/api/state`.
+
 ## Progressive web app
 
 The web app can be installed on phones and laptops, which matters most for the Guard app.

@@ -13,6 +13,8 @@ A 2-minute demo video of the full flow. Record with demo mode on (`DEMO_MODE=tru
 
 For the parking camera, Ishaara rings Anil first, then Ramesh, then Sunita. Check that Command shows "1 of 6 cameras online" and "2 of 3 guards on shift" before you start.
 
+Optional: with Twilio set up (see the README), each guard's phone is also called and pressing 1 confirms. Without it, the Guard app rings on its own.
+
 Backup: if the camera cannot see the signal on the day, press Shift+S on the Eye page (or click "Simulate signal"). The alert is marked as simulated.
 
 ## Script
