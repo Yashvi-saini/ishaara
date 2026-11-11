@@ -2,9 +2,7 @@ import type { PublicConfig } from "./types.js";
 
 export interface AppConfig extends PublicConfig {
   port: number;
-  /** How many alerts, with their snapshots, are kept in memory. */
   maxAlerts: number;
-  /** Overrides the campus name from the seed file when set. */
   campusName: string | undefined;
 }
 
@@ -16,7 +14,6 @@ function isTrue(value: string | undefined): boolean {
   return value !== undefined && ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
 }
 
-/** Reads settings from environment variables. Demo mode shortens every timer. */
 export function loadConfig(env: Env = process.env): AppConfig {
   const demoMode = isTrue(env.DEMO_MODE);
   const port = Number(env.PORT);

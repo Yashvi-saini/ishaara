@@ -8,7 +8,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
-    // Lets a phone on the same network open the Guard app during development.
     host: true,
     proxy: {
       "/api": SERVER,

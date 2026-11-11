@@ -8,16 +8,10 @@ import {
 } from "../src";
 import { place, type Placement, type PoseName } from "./fixtures/hands";
 
-/** Time between frames at roughly 30 frames per second. */
 const FRAME_MS = 33;
 
-/** One step of a recording: the hands in view, held for a number of frames. */
 type Step = [hands: PoseName | HandLandmarks[], frames: number];
 
-/**
- * Plays a recording through a detector, one frame every 33 ms, and collects the events.
- * A pose name means one hand in the middle of the frame.
- */
 function createPlayer(detector: SignalDetector, startAt = 0) {
   let now = startAt;
   const events: SignalEvent[] = [];
@@ -37,7 +31,6 @@ function createPlayer(detector: SignalDetector, startAt = 0) {
       }
       return this;
     },
-    /** Lets time pass with nobody in view. */
     wait(ms: number) {
       for (let waited = 0; waited < ms; waited += FRAME_MS) {
         events.push(...detector.update([], now));
@@ -51,7 +44,6 @@ function createPlayer(detector: SignalDetector, startAt = 0) {
   };
 }
 
-/** The signal as a person makes it: palm with thumb tucked, fingers folding, closed over the thumb. */
 const SIGNAL: Step[] = [
   ["shapeA", 8],
   ["halfFolded", 3],
@@ -184,7 +176,7 @@ describe("createSignalDetector", () => {
     it("times out when the fingers fold too late", () => {
       const player = createPlayer(createSignalDetector()).play(
         ["shapeA", 6],
-        ["halfFolded", 62], // just over 2000 ms
+        ["halfFolded", 62],
         ["shapeB", 10],
       );
       expect(player.events.map((event) => event.type)).toEqual(["step1", "timeout"]);
@@ -193,17 +185,14 @@ describe("createSignalDetector", () => {
     it("accepts fingers that fold just inside the window", () => {
       const player = createPlayer(createSignalDetector()).play(
         ["shapeA", 6],
-        ["halfFolded", 50], // 1650 ms
+        ["halfFolded", 50],
         ["shapeB", 5],
       );
       expect(player.count("signal")).toBe(1);
     });
 
     it("measures the window from the last moment the palm was held, not the first", () => {
-      const player = createPlayer(createSignalDetector()).play(
-        ["shapeA", 100], // held for over 3 seconds
-        ["shapeB", 5],
-      );
+      const player = createPlayer(createSignalDetector()).play(["shapeA", 100], ["shapeB", 5]);
       expect(player.count("signal")).toBe(1);
     });
 
@@ -229,7 +218,7 @@ describe("createSignalDetector", () => {
     it("uses a configured window", () => {
       const player = createPlayer(createSignalDetector({ sequenceWindowMs: 500 })).play(
         ["shapeA", 6],
-        ["halfFolded", 20], // 660 ms
+        ["halfFolded", 20],
         ["shapeB", 10],
       );
       expect(player.count("signal")).toBe(0);
@@ -274,7 +263,6 @@ describe("createSignalDetector", () => {
     it("does not carry a half-made signal across the cooldown", () => {
       const detector = createSignalDetector({ cooldownMs: 1000 });
       const player = createPlayer(detector).play(...SIGNAL);
-      // Shape A during the cooldown must not count as step 1 afterwards.
       player.play(["shapeA", 28], ["shapeB", 10]);
       expect(player.count("signal")).toBe(1);
     });
@@ -338,7 +326,6 @@ describe("createSignalDetector", () => {
       const player = createPlayer(createSignalDetector())
         .play([[place("shapeA", left)], 8])
         .wait(800);
-      // A different hand in the same place shows only shape B.
       player.play([[place("shapeB", left)], 10]);
       expect(player.count("signal")).toBe(0);
     });

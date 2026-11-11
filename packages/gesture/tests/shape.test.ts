@@ -9,8 +9,6 @@ const expected: Record<PoseName, Shape> = {
   openPalm: "other",
   flatHand: "other",
   fistThumbOutside: "other",
-  // The thumb lies in front of the fingers, which a 2D camera cannot tell from a tucked thumb.
-  // This is why one shape alone never raises an alert: see the detector tests.
   fistThumbAcross: "B",
   thumbsUp: "other",
   peaceSign: "other",
