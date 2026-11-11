@@ -108,6 +108,24 @@ describe("GET /api/state", () => {
   });
 });
 
+describe("socket transports", () => {
+  it("connects over long polling without disturbing the web routes", async () => {
+    const client: Client = connect(baseUrl, { transports: ["polling"], forceNew: true });
+    clients.push(client);
+    await new Promise<void>((resolve, reject) => {
+      client.once("connect", resolve);
+      client.once("connect_error", reject);
+    });
+    const presence = collect<string[]>(client, "guard:presence");
+    const phone = await openSocket();
+    await join(phone, "guard-2");
+    await until(() => presence.at(-1)?.includes("guard-2") === true, "presence over polling");
+
+    const response = await fetch(`${baseUrl}/api/health`);
+    expect(response.status).toBe(200);
+  });
+});
+
 describe("GET /api/health", () => {
   it("reports that the server is up", async () => {
     const response = await fetch(`${baseUrl}/api/health`);

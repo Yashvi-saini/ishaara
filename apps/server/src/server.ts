@@ -29,8 +29,7 @@ export function createIshaaraServer(
   const clock = options.clock ?? systemClock;
   const store = createStore(loadSeed(config.campusName), { maxAlerts: config.maxAlerts });
 
-  const httpServer = createServer();
-  const io: IshaaraIo = new Server(httpServer);
+  const io: IshaaraIo = new Server();
   const presence = createPresence();
 
   const engine = createEscalationEngine({
@@ -49,7 +48,8 @@ export function createIshaaraServer(
     presence,
     onAlertCreated: (alert) => io.emit("alert:new", alert),
   });
-  httpServer.on("request", createApp(api));
+  const httpServer = createServer(createApp(api));
+  io.attach(httpServer);
   registerSocketHandlers(io, { store, engine, presence });
 
   return {
