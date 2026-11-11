@@ -99,6 +99,7 @@ Use:
 
 - No comments or JSDoc in source code. Use clear names; put explanations in `README.md` and `docs/`.
 - The campus map, cameras and guards live in `apps/server/src/seed/campus.json`.
+- The app is a PWA: `apps/web/public/manifest.webmanifest`, `apps/web/public/sw.js`, icons in `apps/web/public/icons`. Bump `VERSION` in `sw.js` when its caching rules change. Never cache `/api` or `/socket.io`.
 
 ## Phases
 

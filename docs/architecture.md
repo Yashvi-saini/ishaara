@@ -20,11 +20,11 @@ The camera device decides whether a signal happened. The server only ever receiv
 
 ## Packages
 
-| Package            | Role                                                                 | Status    |
-| ------------------ | -------------------------------------------------------------------- | --------- |
-| `packages/gesture` | Shape rules and the per-hand state machine. Pure TypeScript, no DOM. | Built     |
-| `apps/server`      | Alert API, escalation engine, Socket.io, serves the built web app.   | Built     |
-| `apps/web`         | The five surfaces: Home, Eye, Command, Guard, Learn.                 | Eye built |
+| Package            | Role                                                                 | Status                    |
+| ------------------ | -------------------------------------------------------------------- | ------------------------- |
+| `packages/gesture` | Shape rules and the per-hand state machine. Pure TypeScript, no DOM. | Built                     |
+| `apps/server`      | Alert API, escalation engine, Socket.io, serves the built web app.   | Built                     |
+| `apps/web`         | The five surfaces: Home, Eye, Command, Guard, Learn.                 | Eye, Command, Guard built |
 
 ## Camera page (`/eye`)
 
@@ -44,6 +44,36 @@ main thread                                      Web Worker
 - **Snapshot.** The single image is taken from the same frame as the signal, scaled to 640 px wide, JPEG quality 0.75 (around 40 to 80 KB).
 - **Demo mode** adds a "Simulate signal" button and the Shift+S shortcut, which send an alert marked as simulated, with a snapshot if the camera is running.
 - **States the page handles:** camera starting, blocked, missing, in use by another app, insecure connection; hand tracking loading or failed; server unreachable; alert failed to send.
+
+## Security dashboard (`/command`)
+
+- **Campus map** is an SVG drawn from the seed: buildings, roads, camera pins and guard posts. Pins are filled when the camera's Eye page is open, red with a pulse during an unanswered alert, and green once a guard is responding.
+- **Alarm banner.** While any alert has no responder, a red banner names the camera and who is being rung. An optional alarm sound can be switched on; browsers only allow sound after a click.
+- **Alert panel** shows the snapshot, status, a running timer, the ring timeline, and three actions: Call 112 (`tel:112`), Resolve and Mark false alarm. Resolve and false alarm ask for confirmation.
+- **Alert log** lists the last 50 alerts with their response time. Picking one shows it in the panel; "Back to live" returns to the current alert.
+- The panel follows the newest unanswered alert automatically and returns to "No active alerts" once it is closed.
+
+## Guard app (`/guard`)
+
+1. The guard picks their name and taps **Start shift**. That tap unlocks sound, which browsers block until the user interacts with the page. The screen is kept awake while on shift where the browser supports it.
+2. When rung, the phone shows a full-screen alert with the location, a repeating ring, vibration and one large **I'm going** button, plus a countdown to the next guard.
+3. After confirming, the guard sees the location, a timer, the Foundation's guidance (approach calmly, yes-or-no questions, let her lead) and a Call 112 button.
+4. When security closes the alert, the guard is told and goes back to waiting.
+
+If the connection drops, the page says so and rejoins the shift when it reconnects, picking up any ring already in progress.
+
+## Progressive web app
+
+The web app can be installed on phones and laptops, which matters most for the Guard app.
+
+| File                          | Role                                                                |
+| ----------------------------- | ------------------------------------------------------------------- |
+| `public/manifest.webmanifest` | Name, colours, icons and shortcuts to Guard, Command, Eye and Learn |
+| `public/icons/`               | SVG sources and PNG icons (192, 512, maskable 512, Apple touch 180) |
+| `public/sw.js`                | Service worker                                                      |
+| `src/lib/pwa.ts`              | Registers the worker in production and exposes the install prompt   |
+
+The service worker loads pages network first and falls back to the cached app when offline. Hashed assets, icons and the MediaPipe files are cached on first use, so the camera page starts faster the second time. `/api` and `/socket.io` are never cached: alerts are always live. The server sends `no-cache` for `index.html`, `sw.js` and the manifest so updates reach devices on the next load. The worker is not registered during `pnpm dev`.
 
 ## Design system
 
@@ -129,16 +159,19 @@ Every number is in one config object (`src/config.ts`): `thumbTuckRatio`, `holdF
 
 ### Socket.io events
 
-| Event            | Direction           | Carries                                            |
-| ---------------- | ------------------- | -------------------------------------------------- |
-| `alert:new`      | Server to everyone  | The new alert                                      |
-| `alert:update`   | Server to everyone  | The alert after any change                         |
-| `guard:ring`     | Server to one guard | Alert id and number, camera label, zone, end time  |
-| `guard:presence` | Server to everyone  | Ids of guards on shift                             |
-| `guard:join`     | Guard app to server | `guardId`; the reply includes any ring in progress |
-| `guard:leave`    | Guard app to server | Ends the shift on this device                      |
-| `guard:ack`      | Guard app to server | `alertId`, `guardId`: "I'm going"                  |
-| `alert:resolve`  | Dashboard to server | `alertId`, `outcome`: resolved or false alarm      |
+| Event             | Direction           | Carries                                            |
+| ----------------- | ------------------- | -------------------------------------------------- |
+| `alert:new`       | Server to everyone  | The new alert                                      |
+| `alert:update`    | Server to everyone  | The alert after any change                         |
+| `guard:ring`      | Server to one guard | Alert id and number, camera label, zone, end time  |
+| `guard:presence`  | Server to everyone  | Ids of guards on shift                             |
+| `camera:presence` | Server to everyone  | Ids of cameras with an Eye page open               |
+| `camera:join`     | Eye page to server  | `cameraId`: this device is now that camera         |
+| `camera:leave`    | Eye page to server  | This device stopped being a camera                 |
+| `guard:join`      | Guard app to server | `guardId`; the reply includes any ring in progress |
+| `guard:leave`     | Guard app to server | Ends the shift on this device                      |
+| `guard:ack`       | Guard app to server | `alertId`, `guardId`: "I'm going"                  |
+| `alert:resolve`   | Dashboard to server | `alertId`, `outcome`: resolved or false alarm      |
 
 ### Escalation engine
 

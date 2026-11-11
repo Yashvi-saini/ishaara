@@ -14,7 +14,7 @@ Work in progress. The project is built in phases; this list is updated as each o
 - [x] Phase 1: gesture engine
 - [x] Phase 2: server and escalation engine
 - [x] Phase 3: design system and Ishaara Eye
-- [ ] Phase 4: Ishaara Command and the Guard app
+- [x] Phase 4: Ishaara Command and the Guard app, installable as a progressive web app
 - [ ] Phase 5: Learn and Home
 - [ ] Phase 6: polish and deploy
 
@@ -74,6 +74,10 @@ apps/server       Express and Socket.io: alert API and escalation engine
 packages/gesture  Pure TypeScript gesture detection, with tests
 docs              Architecture notes and the demo script
 ```
+
+## Install as an app
+
+Ishaara is a progressive web app. On a phone, open `/guard` in Chrome and use "Install the Guard app on this phone" or the browser's "Add to home screen". On a laptop, use the install icon in the address bar. Installing needs https, so use the deployed link (or `localhost` on the same machine).
 
 ## Settings
 
