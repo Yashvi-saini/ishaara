@@ -31,6 +31,7 @@ export function createIshaaraServer(
 
   const io: IshaaraIo = new Server();
   const presence = createPresence();
+  const cameraPresence = createPresence();
 
   const engine = createEscalationEngine({
     store,
@@ -46,11 +47,12 @@ export function createIshaaraServer(
     engine,
     clock,
     presence,
+    cameraPresence,
     onAlertCreated: (alert) => io.emit("alert:new", alert),
   });
   const httpServer = createServer(createApp(api));
   io.attach(httpServer);
-  registerSocketHandlers(io, { store, engine, presence });
+  registerSocketHandlers(io, { store, engine, presence, cameraPresence });
 
   return {
     httpServer,

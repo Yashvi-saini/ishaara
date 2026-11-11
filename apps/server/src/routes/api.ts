@@ -15,6 +15,7 @@ export interface ApiDeps {
   engine: EscalationEngine;
   clock: Clock;
   presence: Presence;
+  cameraPresence: Presence;
   onAlertCreated: (alert: Alert) => void;
 }
 
@@ -32,7 +33,7 @@ function parseSnapshot(value: unknown): Parsed<string | null> {
 }
 
 export function createApiRouter(deps: ApiDeps): Router {
-  const { config, store, engine, clock, presence } = deps;
+  const { config, store, engine, clock, presence, cameraPresence } = deps;
   const router = Router();
   router.use(express.json({ limit: "2mb" }));
 
@@ -48,6 +49,7 @@ export function createApiRouter(deps: ApiDeps): Router {
       guards: [...store.guards],
       alerts: store.listAlerts(),
       guardsOnShift: presence.onShift(),
+      camerasOnline: cameraPresence.onShift(),
       config: toPublicConfig(config),
       serverTime: clock.now(),
     };

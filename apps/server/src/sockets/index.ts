@@ -10,6 +10,7 @@ import type { ActionReply, ClientToServerEvents, ServerToClientEvents } from "..
 
 interface SocketData {
   guardId?: string;
+  cameraId?: string;
 }
 
 export type IshaaraIo = Server<
@@ -94,9 +95,17 @@ function field(payload: unknown, key: string): string | undefined {
 
 export function registerSocketHandlers(
   io: IshaaraIo,
-  deps: { store: Store; engine: EscalationEngine; presence: Presence },
+  deps: { store: Store; engine: EscalationEngine; presence: Presence; cameraPresence: Presence },
 ): void {
-  const { store, engine, presence } = deps;
+  const { store, engine, presence, cameraPresence } = deps;
+
+  function stopCamera(socket: IshaaraSocket): void {
+    const cameraId = socket.data.cameraId;
+    if (!cameraId) return;
+    socket.data.cameraId = undefined;
+    cameraPresence.leave(cameraId, socket.id);
+    io.emit("camera:presence", cameraPresence.onShift());
+  }
 
   function endShift(socket: IshaaraSocket): void {
     const guardId = socket.data.guardId;
@@ -109,6 +118,18 @@ export function registerSocketHandlers(
 
   io.on("connection", (socket) => {
     socket.emit("guard:presence", presence.onShift());
+    socket.emit("camera:presence", cameraPresence.onShift());
+
+    socket.on("camera:join", (payload) => {
+      const camera = store.getCamera(field(payload, "cameraId") ?? "");
+      if (!camera) return;
+      stopCamera(socket);
+      socket.data.cameraId = camera.id;
+      cameraPresence.join(camera.id, socket.id);
+      io.emit("camera:presence", cameraPresence.onShift());
+    });
+
+    socket.on("camera:leave", () => stopCamera(socket));
 
     socket.on("guard:join", (payload, reply) => {
       const guard = store.getGuard(field(payload, "guardId") ?? "");
@@ -125,7 +146,10 @@ export function registerSocketHandlers(
     });
 
     socket.on("guard:leave", () => endShift(socket));
-    socket.on("disconnect", () => endShift(socket));
+    socket.on("disconnect", () => {
+      endShift(socket);
+      stopCamera(socket);
+    });
 
     socket.on("guard:ack", (payload, reply) => {
       const alertId = field(payload, "alertId") ?? "";

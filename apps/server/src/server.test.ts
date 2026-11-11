@@ -283,6 +283,31 @@ describe("guard shifts", () => {
   });
 });
 
+describe("camera presence", () => {
+  it("lists a camera as online while its page is open", async () => {
+    const dashboard = await openSocket();
+    const online = collect<string[]>(dashboard, "camera:presence");
+    const eye = await openSocket();
+
+    eye.emit("camera:join", { cameraId: "cam-4" });
+    await until(() => online.at(-1)?.includes("cam-4") === true, "camera online");
+    expect((await getState()).camerasOnline).toEqual(["cam-4"]);
+
+    eye.emit("camera:join", { cameraId: "cam-2" });
+    await until(() => online.at(-1)?.join() === "cam-2", "camera switched");
+
+    eye.disconnect();
+    await until(() => online.at(-1)?.length === 0, "camera offline");
+  });
+
+  it("ignores a camera that is not on the map", async () => {
+    const eye = await openSocket();
+    eye.emit("camera:join", { cameraId: "cam-99" });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect((await getState()).camerasOnline).toEqual([]);
+  });
+});
+
 describe("the full flow", () => {
   it("goes from signal to ringing to responding to resolved", async () => {
     const dashboard = await openSocket();

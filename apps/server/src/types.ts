@@ -90,6 +90,7 @@ export interface AppState {
   guards: Guard[];
   alerts: Alert[];
   guardsOnShift: string[];
+  camerasOnline: string[];
   config: PublicConfig;
   serverTime: number;
 }
@@ -129,17 +130,20 @@ export interface ServerToClientEvents {
   "alert:update": (alert: Alert) => void;
   "guard:ring": (ring: GuardRing) => void;
   "guard:presence": (guardIds: string[]) => void;
+  "camera:presence": (cameraIds: string[]) => void;
 }
 
 export interface ClientToServerEvents {
-  "guard:join": (payload: { guardId: string }, reply?: (result: JoinReply) => void) => void;
+  "guard:join": (payload: { guardId: string }, reply: (result: JoinReply) => void) => void;
   "guard:leave": () => void;
+  "camera:join": (payload: { cameraId: string }) => void;
+  "camera:leave": () => void;
   "guard:ack": (
     payload: { alertId: string; guardId: string },
-    reply?: (result: ActionReply) => void,
+    reply: (result: ActionReply) => void,
   ) => void;
   "alert:resolve": (
     payload: { alertId: string; outcome: AlertOutcome },
-    reply?: (result: ActionReply) => void,
+    reply: (result: ActionReply) => void,
   ) => void;
 }
