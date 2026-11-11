@@ -1,0 +1,18 @@
+{
+  "name": "@ishaara/gesture",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pure TypeScript detection of the Signal for Help from MediaPipe hand landmarks.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}
