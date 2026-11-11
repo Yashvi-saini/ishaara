@@ -33,6 +33,7 @@ describe("loadConfig", () => {
       demoMode: true,
       ringMs: 8_000,
       cameraCooldownMs: 5_000,
+      phoneCalls: false,
     });
   });
 });
