@@ -17,6 +17,7 @@ export interface ApiDeps {
   presence: Presence;
   cameraPresence: Presence;
   onAlertCreated: (alert: Alert) => void;
+  twilioRouter?: Router;
 }
 
 type Parsed<T> = { ok: true; value: T } | { ok: false; error: string };
@@ -104,6 +105,8 @@ export function createApiRouter(deps: ApiDeps): Router {
       .set("Cache-Control", "private, max-age=300")
       .send(Buffer.from(snapshot.slice(JPEG_PREFIX.length), "base64"));
   });
+
+  if (deps.twilioRouter) router.use("/twilio", deps.twilioRouter);
 
   router.use((_req, res) => {
     res.status(404).json({ error: "Not found." } satisfies ApiError);

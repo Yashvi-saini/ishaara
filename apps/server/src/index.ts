@@ -12,6 +12,14 @@ const server = createIshaaraServer(config);
 server.httpServer.listen(config.port, () => {
   const mode = config.demoMode ? "demo mode" : "normal mode";
   console.log(`Ishaara server listening on http://localhost:${config.port} (${mode})`);
+  const phones = Object.keys(config.guardPhones).length;
+  if (config.phoneCalls) {
+    console.log(`Phone calls on: ${phones} guard${phones === 1 ? "" : "s"} with a number.`);
+  } else if (config.twilio) {
+    console.log("Phone calls off: set GUARD_PHONES to give guards a number.");
+  } else {
+    console.log("Phone calls off: Twilio settings missing. Guards are rung through the Guard app.");
+  }
 });
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
