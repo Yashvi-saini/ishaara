@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { loadConfig } from "./config.js";
 import { createIshaaraServer, type IshaaraServer } from "./server.js";
 import { createFakeClock, type FakeClock } from "./services/clock.js";
+import { twilioSignature } from "./services/twilio.js";
 import type {
   ActionReply,
   Alert,
@@ -103,7 +104,12 @@ describe("GET /api/state", () => {
     expect(state.guards).toHaveLength(3);
     expect(state.alerts).toEqual([]);
     expect(state.guardsOnShift).toEqual([]);
-    expect(state.config).toEqual({ demoMode: true, ringMs: RING_MS, cameraCooldownMs: 5000 });
+    expect(state.config).toEqual({
+      demoMode: true,
+      ringMs: RING_MS,
+      cameraCooldownMs: 5000,
+      phoneCalls: false,
+    });
     expect(state.serverTime).toBe(clock.now());
   });
 });
@@ -280,6 +286,124 @@ describe("guard shifts", () => {
       ok: false,
       error: "This guard is not on the list.",
     });
+  });
+});
+
+describe("phone calls", () => {
+  const PUBLIC_URL = "https://ishaara.example.com";
+  let phoneServer: IshaaraServer;
+  let phoneUrl: string;
+  let calls: URLSearchParams[];
+
+  beforeEach(async () => {
+    calls = [];
+    const fakeFetch = (async (_url: string, init: RequestInit) => {
+      calls.push(new URLSearchParams(String(init.body)));
+      return new Response(JSON.stringify({ sid: `CA${calls.length}` }), { status: 201 });
+    }) as typeof fetch;
+    phoneServer = createIshaaraServer(
+      loadConfig({
+        DEMO_MODE: "true",
+        TWILIO_ACCOUNT_SID: "AC123",
+        TWILIO_AUTH_TOKEN: "secret-token",
+        TWILIO_FROM_NUMBER: "+15005550006",
+        PUBLIC_URL,
+        GUARD_PHONES: "guard-3=+919876543210",
+      }),
+      { clock, fetch: fakeFetch },
+    );
+    await new Promise<void>((resolve) => phoneServer.httpServer.listen(0, resolve));
+    phoneUrl = `http://localhost:${(phoneServer.httpServer.address() as AddressInfo).port}`;
+  });
+
+  afterEach(async () => {
+    await phoneServer.close();
+  });
+
+  async function pressKey(alertId: string, guardId: string, digits: string, sign = true) {
+    const path = `/api/twilio/gather?alert=${alertId}&guard=${guardId}`;
+    const params = { CallSid: "CA1", Digits: digits };
+    const signature = sign
+      ? twilioSignature("secret-token", `${PUBLIC_URL}${path}`, params)
+      : "forged";
+    return fetch(`${phoneUrl}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-Twilio-Signature": signature,
+      },
+      body: new URLSearchParams(params).toString(),
+    });
+  }
+
+  async function raise(): Promise<Alert> {
+    const response = await fetch(`${phoneUrl}/api/alerts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cameraId: "cam-4" }),
+    });
+    return ((await response.json()) as CreateAlertResponse).alert;
+  }
+
+  it("calls the guard's phone as well as their app and notes it in the timeline", async () => {
+    const alert = await raise();
+    await phoneServer.phone?.settle();
+    expect(calls[0]?.get("To")).toBe("+919876543210");
+    expect(alert.attempts[0]).toMatchObject({ guardName: "Anil Yadav", reached: true });
+    expect(alert.attempts[0]?.channels).toEqual(["phone"]);
+  });
+
+  it("confirms the guard when they press 1 on the call", async () => {
+    const alert = await raise();
+    const response = await pressKey(alert.id, "guard-3", "1");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/xml");
+    expect(await response.text()).toContain("Security can see you are going to Parking, camera 4.");
+    expect(phoneServer.store.getAlert(alert.id)).toMatchObject({
+      status: "responding",
+      responderName: "Anil Yadav",
+    });
+  });
+
+  it("hangs up the call once a guard confirms in the app", async () => {
+    const alert = await raise();
+    await phoneServer.phone?.settle();
+    phoneServer.engine.acknowledge(alert.id, "guard-3");
+    await phoneServer.phone?.settle();
+    expect(calls.at(-1)?.get("Status")).toBe("completed");
+  });
+
+  it("does nothing for any key other than 1", async () => {
+    const alert = await raise();
+    expect(await (await pressKey(alert.id, "guard-3", "2")).text()).toContain("Not confirmed");
+    expect(phoneServer.store.getAlert(alert.id)?.status).toBe("ringing");
+  });
+
+  it("tells a late caller who is already on the way", async () => {
+    const alert = await raise();
+    phoneServer.engine.acknowledge(alert.id, "guard-1");
+    expect(await (await pressKey(alert.id, "guard-3", "1")).text()).toContain(
+      "Ramesh Kumar is already on the way.",
+    );
+  });
+
+  it("rejects a request that was not signed by Twilio", async () => {
+    const alert = await raise();
+    const response = await pressKey(alert.id, "guard-3", "1", false);
+    expect(response.status).toBe(403);
+    expect(phoneServer.store.getAlert(alert.id)?.status).toBe("ringing");
+  });
+
+  it("reports phone calls as on to the web app", async () => {
+    const state = (await (await fetch(`${phoneUrl}/api/state`)).json()) as AppState;
+    expect(state.config.phoneCalls).toBe(true);
+  });
+});
+
+describe("phone calls switched off", () => {
+  it("has no webhook when Twilio is not set up", async () => {
+    const response = await fetch(`${baseUrl}/api/twilio/gather`, { method: "POST" });
+    expect(response.status).toBe(404);
   });
 });
 
