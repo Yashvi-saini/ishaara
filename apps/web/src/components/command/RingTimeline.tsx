@@ -8,6 +8,15 @@ export interface RingTimelineProps {
   now: number;
 }
 
+function reachText(attempt: RingAttempt): string {
+  if (attempt.outcome === "confirmed" && attempt.channels.length === 0) return "Confirmed directly";
+  if (!attempt.reached) return "Not reachable: app closed, no phone number";
+  const app = attempt.channels.includes("guard-app");
+  const phone = attempt.channels.includes("phone");
+  if (app && phone) return "Guard app and phone call";
+  return phone ? "Phone call" : "Guard app";
+}
+
 export function RingTimeline({ attempts, now }: RingTimelineProps) {
   if (attempts.length === 0) {
     return <p className="text-sm text-ink-muted">No guard has been rung yet.</p>;
@@ -30,7 +39,7 @@ export function RingTimeline({ attempts, now }: RingTimelineProps) {
             <span className="min-w-0">
               <span className="font-medium text-ink">{attempt.guardName}</span>
               {showRounds && <span className="text-ink-faint"> · round {attempt.round}</span>}
-              {!attempt.reached && <span className="block text-ink-faint">Guard app not open</span>}
+              <span className="block text-ink-faint">{reachText(attempt)}</span>
             </span>
             <StatusDot tone={view.tone} pulse={view.pulse}>
               {ringing ? `Ringing, ${formatSeconds(attempt.endsAt - now)} left` : view.label}

@@ -249,7 +249,14 @@ export function CommandPage() {
             </Card>
           )}
 
-          <Card title="Guards" description="Rung nearest to the camera first.">
+          <Card
+            title="Guards"
+            description={
+              app.data.config.phoneCalls
+                ? "Rung in the Guard app and by phone, nearest to the camera first."
+                : "Rung in the Guard app, nearest to the camera first."
+            }
+          >
             <GuardRoster guards={guards} guardsOnShift={guardsOnShift} openAlerts={openAlerts} />
           </Card>
         </aside>
