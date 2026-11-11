@@ -23,3 +23,13 @@ export function formatSeconds(ms: number): string {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
   return `${seconds} s`;
 }
+
+const shortClock = new Intl.DateTimeFormat("en-IN", {
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
+export function formatShortTime(timestamp: number): string {
+  return shortClock.format(timestamp);
+}
