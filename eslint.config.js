@@ -37,5 +37,9 @@ export default defineConfig(
     files: ["apps/server/**/*.ts", "**/*.config.{js,ts}", "**/scripts/**/*.mjs"],
     languageOptions: { globals: globals.node },
   },
+  {
+    files: ["apps/web/public/sw.js"],
+    languageOptions: { globals: globals.serviceworker },
+  },
   prettier,
 );
