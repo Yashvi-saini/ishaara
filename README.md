@@ -6,7 +6,16 @@ Ishaara lets a woman ask for help silently, with one hand sign, using cameras th
 
 _Ishaara (इशारा) is Hindi for "signal" or "gesture"._ Built for HerHack 2026, Student Innovation track.
 
-**Live demo:** not deployed yet. See [Deploy to Render](#deploy-to-render).
+**Live demo:** https://ishaara-pnwa.onrender.com
+
+| Open                                                  | For                                     |
+| ----------------------------------------------------- | --------------------------------------- |
+| [/command](https://ishaara-pnwa.onrender.com/command) | The security dashboard                  |
+| [/guard](https://ishaara-pnwa.onrender.com/guard)     | A guard's phone (installable as an app) |
+| [/eye](https://ishaara-pnwa.onrender.com/eye)         | A camera; press Shift+S to simulate     |
+| [/learn](https://ishaara-pnwa.onrender.com/learn)     | Learn and practise the signal           |
+
+The free server sleeps when idle, so the first visit can take about a minute.
 
 | Security dashboard                                                                   | Guard app, ringing                                                           | Guard app, responding                                                                  |
 | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
