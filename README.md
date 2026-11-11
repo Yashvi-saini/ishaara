@@ -11,7 +11,7 @@ Built for HerHack 2026 (Student Innovation track).
 Work in progress. The project is built in phases; this list is updated as each one lands.
 
 - [x] Phase 0: workspace, tooling and CI
-- [ ] Phase 1: gesture engine
+- [x] Phase 1: gesture engine
 - [ ] Phase 2: server and escalation engine
 - [ ] Phase 3: design system and Ishaara Eye
 - [ ] Phase 4: Ishaara Command and the Guard app
