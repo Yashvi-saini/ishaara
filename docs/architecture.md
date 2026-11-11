@@ -20,11 +20,46 @@ The camera device decides whether a signal happened. The server only ever receiv
 
 ## Packages
 
-| Package            | Role                                                                 | Status   |
-| ------------------ | -------------------------------------------------------------------- | -------- |
-| `packages/gesture` | Shape rules and the per-hand state machine. Pure TypeScript, no DOM. | Built    |
-| `apps/server`      | Alert API, escalation engine, Socket.io, serves the built web app.   | Built    |
-| `apps/web`         | The five surfaces: Home, Eye, Command, Guard, Learn.                 | Skeleton |
+| Package            | Role                                                                 | Status    |
+| ------------------ | -------------------------------------------------------------------- | --------- |
+| `packages/gesture` | Shape rules and the per-hand state machine. Pure TypeScript, no DOM. | Built     |
+| `apps/server`      | Alert API, escalation engine, Socket.io, serves the built web app.   | Built     |
+| `apps/web`         | The five surfaces: Home, Eye, Command, Guard, Learn.                 | Eye built |
+
+## Camera page (`/eye`)
+
+```
+main thread                                      Web Worker
+-----------                                      ----------
+<video> from getUserMedia
+  every frame: createImageBitmap (640 px wide) --> HandLandmarker.detectForVideo
+                                              <--  21 landmarks per hand (up to 2 hands)
+  createSignalDetector().update(hands, time)
+  on "signal": one JPEG snapshot --> POST /api/alerts
+```
+
+- **MediaPipe runs in a Web Worker**, so detection never freezes the page. The worker asks for the next frame only after finishing the last one, which keeps the rate near 30 frames per second without a queue building up.
+- **Mirroring.** Only the on-screen `<video>` and the tracking overlay are mirrored with CSS. The frame given to MediaPipe is never flipped.
+- **Model files ship with the app.** `public/mediapipe/hand_landmarker.task` is committed. The WebAssembly runtime is copied from `node_modules` into `public/mediapipe/wasm` by `scripts/copy-mediapipe.mjs` before every dev run and build, so the version always matches the installed package and nothing is loaded from a CDN.
+- **Snapshot.** The single image is taken from the same frame as the signal, scaled to 640 px wide, JPEG quality 0.75 (around 40 to 80 KB).
+- **Demo mode** adds a "Simulate signal" button and the Shift+S shortcut, which send an alert marked as simulated, with a snapshot if the camera is running.
+- **States the page handles:** camera starting, blocked, missing, in use by another app, insecure connection; hand tracking loading or failed; server unreachable; alert failed to send.
+
+## Design system
+
+All colours are CSS variables in `apps/web/src/styles/index.css` (Tailwind `@theme`). The default Tailwind palette is switched off, so only these tokens can be used.
+
+| Token                           | Use                                   |
+| ------------------------------- | ------------------------------------- |
+| `canvas`, `surface`, `sunken`   | Page, card and inset backgrounds      |
+| `line`, `line-strong`           | 1px borders                           |
+| `ink`, `ink-muted`, `ink-faint` | Text                                  |
+| `accent`                        | Primary actions and focus (deep blue) |
+| `alert`                         | Active alert (red)                    |
+| `ringing`                       | Ringing (amber)                       |
+| `ok`                            | Responding or resolved (green)        |
+
+UI primitives live in `apps/web/src/components/ui`: Button, Card, Dialog, EmptyState, PageHeader, Select, StatusDot, Toggle. Motion is limited to one alert flash and a ringing pulse, and both are switched off under `prefers-reduced-motion`.
 
 ## Gesture detection
 
