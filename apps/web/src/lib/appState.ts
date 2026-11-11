@@ -60,6 +60,9 @@ function start(): void {
   socket.on("guard:presence", (guardsOnShift) => {
     if (store.data) update({ data: { ...store.data, guardsOnShift } });
   });
+  socket.on("camera:presence", (camerasOnline) => {
+    if (store.data) update({ data: { ...store.data, camerasOnline } });
+  });
   socket.connect();
   void load();
 }

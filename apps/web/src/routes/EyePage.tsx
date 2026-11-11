@@ -6,6 +6,7 @@ import { Button, Card, EmptyState, PageHeader, Select, StatusDot, Toggle } from 
 import { createAlert } from "../lib/api";
 import { useAppState, retryLoad } from "../lib/appState";
 import { useSignalCamera } from "../lib/camera/useSignalCamera";
+import { socket } from "../lib/socket";
 import { formatTime } from "../lib/format";
 import { isTypingTarget, useDocumentTitle, useNow } from "../lib/hooks";
 import { useStoredFlag, useStoredString } from "../lib/storage";
@@ -41,6 +42,18 @@ export function EyePage() {
   useEffect(() => {
     if (!cameraId && firstCameraId) setCameraId(firstCameraId);
   }, [cameraId, firstCameraId, setCameraId]);
+
+  const reportedCameraId = selectedCamera?.id;
+  useEffect(() => {
+    if (!reportedCameraId) return;
+    const report = () => socket.emit("camera:join", { cameraId: reportedCameraId });
+    if (socket.connected) report();
+    socket.on("connect", report);
+    return () => {
+      socket.off("connect", report);
+      socket.emit("camera:leave");
+    };
+  }, [reportedCameraId]);
 
   const send = useCallback(
     async (snapshot: string | null, simulated: boolean) => {
