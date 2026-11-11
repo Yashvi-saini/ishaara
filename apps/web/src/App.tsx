@@ -1,4 +1,5 @@
 import { Link, Route, Routes } from "react-router";
+import { EyePage } from "./routes/EyePage";
 
 const surfaces = [
   { path: "/eye", name: "Ishaara Eye", summary: "Camera page that watches for the signal." },
@@ -11,17 +12,17 @@ function Home() {
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
       <h1 className="text-2xl font-semibold">Ishaara</h1>
-      <p className="mt-2 text-neutral-700">
+      <p className="mt-2 text-ink-muted">
         Help without saying a word. This is the project skeleton; each surface is built in a later
         phase.
       </p>
-      <ul className="mt-8 divide-y divide-neutral-200 border-y border-neutral-200">
+      <ul className="mt-8 divide-y divide-line border-y border-line">
         {surfaces.map((surface) => (
           <li key={surface.path} className="py-3">
-            <Link to={surface.path} className="font-medium text-blue-800 underline">
+            <Link to={surface.path} className="font-medium text-accent underline">
               {surface.name}
             </Link>
-            <p className="text-sm text-neutral-600">{surface.summary}</p>
+            <p className="text-sm text-ink-muted">{surface.summary}</p>
           </li>
         ))}
       </ul>
@@ -33,8 +34,8 @@ function NotBuiltYet({ name }: { name: string }) {
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
       <h1 className="text-2xl font-semibold">{name}</h1>
-      <p className="mt-2 text-neutral-700">This page is not built yet.</p>
-      <Link to="/" className="mt-6 inline-block text-blue-800 underline">
+      <p className="mt-2 text-ink-muted">This page is not built yet.</p>
+      <Link to="/" className="mt-6 inline-block text-accent underline">
         Back to home
       </Link>
     </main>
@@ -45,13 +46,10 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      {surfaces.map((surface) => (
-        <Route
-          key={surface.path}
-          path={surface.path}
-          element={<NotBuiltYet name={surface.name} />}
-        />
-      ))}
+      <Route path="/eye" element={<EyePage />} />
+      <Route path="/command" element={<NotBuiltYet name="Ishaara Command" />} />
+      <Route path="/guard" element={<NotBuiltYet name="Guard app" />} />
+      <Route path="/learn" element={<NotBuiltYet name="Learn" />} />
       <Route path="*" element={<NotBuiltYet name="Page not found" />} />
     </Routes>
   );
