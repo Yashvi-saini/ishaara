@@ -1,5 +1,7 @@
 import { Link, Route, Routes } from "react-router";
+import { CommandPage } from "./routes/CommandPage";
 import { EyePage } from "./routes/EyePage";
+import { GuardPage } from "./routes/GuardPage";
 
 const surfaces = [
   { path: "/eye", name: "Ishaara Eye", summary: "Camera page that watches for the signal." },
@@ -47,8 +49,8 @@ export function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/eye" element={<EyePage />} />
-      <Route path="/command" element={<NotBuiltYet name="Ishaara Command" />} />
-      <Route path="/guard" element={<NotBuiltYet name="Guard app" />} />
+      <Route path="/command" element={<CommandPage />} />
+      <Route path="/guard" element={<GuardPage />} />
       <Route path="/learn" element={<NotBuiltYet name="Learn" />} />
       <Route path="*" element={<NotBuiltYet name="Page not found" />} />
     </Routes>
