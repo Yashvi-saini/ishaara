@@ -23,7 +23,7 @@ The camera device decides whether a signal happened. The server only ever receiv
 | Package            | Role                                                                 | Status   |
 | ------------------ | -------------------------------------------------------------------- | -------- |
 | `packages/gesture` | Shape rules and the per-hand state machine. Pure TypeScript, no DOM. | Built    |
-| `apps/server`      | Alert API, escalation engine, Socket.io, serves the built web app.   | Skeleton |
+| `apps/server`      | Alert API, escalation engine, Socket.io, serves the built web app.   | Built    |
 | `apps/web`         | The five surfaces: Home, Eye, Command, Guard, Learn.                 | Skeleton |
 
 ## Gesture detection
@@ -65,6 +65,69 @@ Every number is in one config object (`src/config.ts`): `thumbTuckRatio`, `holdF
 ### Tests
 
 `tests/fixtures/hands.ts` defines hand poses (Shape A, Shape B, open palm, two kinds of normal fist, thumbs up, peace sign, pointing) and places them in an image at any position, size, rotation or handedness. The tests cover a valid signal, fists that must not trigger, an open palm alone, the two-second timeout, the cooldown, and two people in frame.
+
+## Server
+
+`apps/server` is one Node process: Express for the REST API, Socket.io for live updates, and the escalation engine.
+
+| File                         | Role                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| `src/server.ts`              | Wires the store, engine, API and sockets together                        |
+| `src/routes/api.ts`          | REST routes                                                              |
+| `src/sockets/index.ts`       | Socket.io events, guard shifts, the Guard app ring channel               |
+| `src/services/escalation.ts` | The ring chain                                                           |
+| `src/services/clock.ts`      | Real clock for the server, fake clock for tests                          |
+| `src/store/store.ts`         | In-memory cameras, guards, alerts and snapshots                          |
+| `src/seed/campus.json`       | The campus map, 6 cameras and 3 guards. Edit this file to match a campus |
+| `src/types.ts`               | Types shared with the web app                                            |
+
+### REST
+
+| Route                          | What it does                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------------- |
+| `POST /api/alerts`             | Body: `cameraId`, optional `snapshot` (JPEG data URL), optional `simulated`     |
+| `GET /api/state`               | Campus, cameras, guards, alerts (newest first), guards on shift, settings, time |
+| `GET /api/alerts/:id/snapshot` | The alert's snapshot as a JPEG                                                  |
+| `GET /api/health`              | Health check for the host                                                       |
+
+`POST /api/alerts` answers 201 with the new alert. If the same camera already has an open alert from within its cooldown, it answers 200 with that alert and `duplicate: true`, so one gesture can never create two alerts. Snapshots are stored apart from alerts and loaded by URL, which keeps live updates small.
+
+### Socket.io events
+
+| Event            | Direction           | Carries                                            |
+| ---------------- | ------------------- | -------------------------------------------------- |
+| `alert:new`      | Server to everyone  | The new alert                                      |
+| `alert:update`   | Server to everyone  | The alert after any change                         |
+| `guard:ring`     | Server to one guard | Alert id and number, camera label, zone, end time  |
+| `guard:presence` | Server to everyone  | Ids of guards on shift                             |
+| `guard:join`     | Guard app to server | `guardId`; the reply includes any ring in progress |
+| `guard:leave`    | Guard app to server | Ends the shift on this device                      |
+| `guard:ack`      | Guard app to server | `alertId`, `guardId`: "I'm going"                  |
+| `alert:resolve`  | Dashboard to server | `alertId`, `outcome`: resolved or false alarm      |
+
+### Escalation engine
+
+```
+alert arrives --> ring guard 1 --(no answer)--> ring guard 2 --(no answer)--> ring guard 3 --+
+                     ^                                                                       |
+                     +------------------- nobody confirmed: start again --------------------+
+
+any guard taps "I'm going" --> responding (guard's name, timer starts) --> resolved or false alarm
+```
+
+- Guards are rung one at a time, nearest to the camera first, using the map positions in the seed.
+- Each ring lasts 20 s, or 8 s in demo mode.
+- The first "I'm going" wins. Later confirmations are told who is already on the way.
+- If nobody confirms, the chain repeats until someone does or security closes the alert.
+- The engine never contacts the police. Calling 112 is a button a person presses.
+- Each ring is recorded with its outcome (no answer, confirmed, stopped) and whether the guard had the app open. That list is the ring timeline on the dashboard.
+- Ring channels are pluggable. The Guard app is the only channel today; phone calls can be added as a second one without changing the engine.
+
+The engine takes its clock as a parameter. Tests pass a fake clock and move time forward instantly, so the full chain is tested in milliseconds.
+
+### Alert status
+
+`new` → `ringing` → `responding` → `resolved` or `false_alarm`. An alert can be closed from any open status.
 
 ## Decisions so far
 

@@ -95,6 +95,11 @@ Use:
 - Push at the end of every phase, then summarise what was built, how to run it, and the decisions made.
 - Never commit secrets. Keep `.env.example` documented.
 
+## Code style
+
+- No comments or JSDoc in source code. Use clear names; put explanations in `README.md` and `docs/`.
+- The campus map, cameras and guards live in `apps/server/src/seed/campus.json`.
+
 ## Phases
 
 0. Initialise: workspace, tooling, CI, docs skeleton.

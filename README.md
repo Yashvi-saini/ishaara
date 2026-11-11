@@ -12,7 +12,7 @@ Work in progress. The project is built in phases; this list is updated as each o
 
 - [x] Phase 0: workspace, tooling and CI
 - [x] Phase 1: gesture engine
-- [ ] Phase 2: server and escalation engine
+- [x] Phase 2: server and escalation engine
 - [ ] Phase 3: design system and Ishaara Eye
 - [ ] Phase 4: Ishaara Command and the Guard app
 - [ ] Phase 5: Learn and Home
