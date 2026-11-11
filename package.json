@@ -1,0 +1,32 @@
+{
+  "name": "ishaara",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ishaara: help without saying a word. Cameras that recognise the Signal for Help and ring campus security.",
+  "type": "module",
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"pnpm --filter @ishaara/server dev\" \"pnpm --filter @ishaara/web dev\"",
+    "build": "pnpm --filter @ishaara/web build && pnpm --filter @ishaara/server build",
+    "start": "pnpm --filter @ishaara/server start",
+    "lint": "eslint . --max-warnings 0 && prettier --check .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "check": "pnpm lint && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "concurrently": "10.0.7",
+    "eslint": "10.14.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.14.0",
+    "prettier": "3.10.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2"
+  }
+}

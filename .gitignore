@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Secrets and local settings. Copy .env.example to .env.
+.env
+.env.*
+!.env.example
+
+# Logs and editor files
+*.log
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
