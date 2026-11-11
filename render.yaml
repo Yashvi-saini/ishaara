@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: ishaara
+    runtime: node
+    plan: free
+    autoDeploy: true
+    buildCommand: npm install -g pnpm@10.34.9 && pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.20.0
+      - key: DEMO_MODE
+        value: "true"
