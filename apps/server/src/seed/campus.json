@@ -132,7 +132,7 @@
     }
   ],
   "guards": [
-    { "id": "guard-1", "name": "Ramesh Kumar", "zone": "Gate and parking", "x": 470, "y": 500 },
+    { "id": "guard-1", "name": "Ramesh Kumar", "zone": "Gate and parking", "x": 420, "y": 470 },
     { "id": "guard-2", "name": "Sunita Devi", "zone": "Hostels and canteen", "x": 700, "y": 220 },
     { "id": "guard-3", "name": "Anil Yadav", "zone": "Academic area", "x": 350, "y": 310 }
   ]
