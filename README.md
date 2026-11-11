@@ -15,7 +15,7 @@ Work in progress. The project is built in phases; this list is updated as each o
 - [x] Phase 2: server and escalation engine
 - [x] Phase 3: design system and Ishaara Eye
 - [x] Phase 4: Ishaara Command and the Guard app, installable as a progressive web app
-- [ ] Phase 5: Learn and Home
+- [x] Phase 5: Learn and Home
 - [ ] Phase 6: polish and deploy
 
 ## How it works
