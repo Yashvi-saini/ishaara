@@ -6,7 +6,12 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig(
-  globalIgnores(["**/dist/**", "**/node_modules/**", "**/coverage/**"]),
+  globalIgnores([
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/coverage/**",
+    "apps/web/public/mediapipe/**",
+  ]),
   js.configs.recommended,
   tseslint.configs.recommended,
   {
@@ -29,7 +34,7 @@ export default defineConfig(
     },
   },
   {
-    files: ["apps/server/**/*.ts", "**/*.config.{js,ts}"],
+    files: ["apps/server/**/*.ts", "**/*.config.{js,ts}", "**/scripts/**/*.mjs"],
     languageOptions: { globals: globals.node },
   },
   prettier,
