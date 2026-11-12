@@ -65,7 +65,7 @@ export function LearnPage() {
         <Practice />
 
         <div className="stagger flex flex-col gap-3.5 lg:col-span-5">
-          <Card notch className="p-6">
+          <Card className="p-6">
             <CardHead title="What happens on campus" />
             <ol className="mt-5 flex flex-col">
               {CAMPUS.map((text, index) => (

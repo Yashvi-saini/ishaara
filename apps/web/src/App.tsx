@@ -12,7 +12,7 @@ import { LearnPage } from "./routes/LearnPage";
 function NotFoundPage() {
   useDocumentTitle("Page not found");
   return (
-    <Card className="mx-auto mt-10 max-w-lg p-10 text-center" notch notchAt="center">
+    <Card className="mx-auto mt-10 max-w-lg p-10 text-center">
       <p className="text-[64px] leading-none font-bold tracking-[-0.06em] text-accent-ink tabular">
         404
       </p>

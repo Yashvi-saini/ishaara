@@ -309,7 +309,7 @@ export function EyePage() {
         </div>
 
         <div className="stagger flex flex-col gap-3.5 lg:col-span-4">
-          <Card notch className="p-6">
+          <Card className="p-6">
             <CardHead title="This camera" />
             <label htmlFor={selectId} className="mt-5 block text-[13px] font-semibold text-ink-2">
               Camera location

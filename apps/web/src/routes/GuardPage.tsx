@@ -224,7 +224,7 @@ export function GuardPage() {
       <PageHead title="Guard app" lede="Rings when a camera sees the Signal for Help." />
       <div className="stagger grid gap-3.5 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-start">
         <div className="w-full max-w-[460px]">{view}</div>
-        <Card notch className="hidden p-6 lg:block">
+        <Card className="hidden p-6 lg:block">
           <h2 className="text-[19px] font-medium tracking-[-0.03em]">When your phone rings</h2>
           <ol className="mt-5 flex flex-col gap-4">
             {[

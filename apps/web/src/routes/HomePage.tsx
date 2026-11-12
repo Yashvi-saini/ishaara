@@ -202,7 +202,6 @@ export function HomePage() {
           <Card
             key={step.title}
             as="article"
-            tab={false}
             notch={
               <Chip tone="outline" size="sm" className="bg-card">
                 Step {index + 1}

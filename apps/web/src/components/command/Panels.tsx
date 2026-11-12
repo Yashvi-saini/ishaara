@@ -153,7 +153,7 @@ export function GuardsCard({
   const open = alerts.filter(isOpen);
   const states = guards.map((guard) => guardState(guard.id, guardsOnShift, open));
   return (
-    <Card notch className="p-6">
+    <Card className="p-6">
       <CardHead
         title="Guards"
         sub={

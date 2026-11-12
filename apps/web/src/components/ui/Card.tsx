@@ -12,10 +12,8 @@ const tones: Record<CardTone, string> = {
 
 export interface CardProps extends HTMLAttributes<HTMLElement> {
   tone?: CardTone;
-  notch?: boolean | ReactNode;
-  notchAt?: "left" | "right" | "center";
-  tab?: boolean;
-  notchClass?: string;
+  notch?: ReactNode;
+  notchAt?: "left" | "right";
   as?: "section" | "div" | "article" | "aside" | "li";
   ref?: Ref<HTMLElement>;
 }
@@ -24,27 +22,16 @@ export function Card({
   tone = "card",
   notch,
   notchAt = "right",
-  tab = true,
-  notchClass,
   className,
   children,
   as = "section",
   ref,
   ...rest
 }: CardProps) {
-  const position =
-    notchAt === "left"
-      ? "left-[14%] w-[42%]"
-      : notchAt === "center"
-        ? "left-[28%] w-[44%]"
-        : "right-[6%] w-[46%]";
   return createElement(
     as,
     { ref, className: cn("relative isolate rounded-[26px]", tones[tone], className), ...rest },
-    notch && tab && tone !== "hero" && (
-      <span aria-hidden="true" className={cn("notch", position, notchClass)} />
-    ),
-    notch && typeof notch !== "boolean" && (
+    notch && (
       <div className={cn("absolute top-3 z-10", notchAt === "left" ? "left-[18%]" : "right-[8%]")}>
         {notch}
       </div>
