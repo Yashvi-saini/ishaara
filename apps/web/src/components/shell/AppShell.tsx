@@ -25,7 +25,10 @@ export function AppShell() {
 
   return (
     <div className="min-h-dvh p-0 sm:p-4 lg:p-7">
-      <div className="frame mx-auto min-h-dvh max-w-[1480px] overflow-hidden sm:min-h-[calc(100dvh-2rem)] sm:rounded-[26px] lg:min-h-[calc(100dvh-3.5rem)]">
+      <div
+        data-alarm={unanswered > 0 ? "true" : undefined}
+        className="frame mx-auto min-h-dvh max-w-[1480px] overflow-hidden sm:min-h-[calc(100dvh-2rem)] sm:rounded-[26px] lg:min-h-[calc(100dvh-3.5rem)]"
+      >
         <div className="px-4 pt-4 pb-10 sm:px-7 sm:pt-6 lg:px-10">
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-3" aria-label="Main">
             <Link
@@ -70,7 +73,13 @@ export function AppShell() {
             <div className="ml-auto flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                onClick={(event) => {
+                  const box = event.currentTarget.getBoundingClientRect();
+                  setTheme(theme === "light" ? "dark" : "light", {
+                    x: box.left + box.width / 2,
+                    y: box.top + box.height / 2,
+                  });
+                }}
                 aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
                 className="inline-flex size-11 items-center justify-center rounded-full bg-card text-ink shadow-[inset_0_0_0_1px_var(--line)] transition-colors hover:bg-sunken"
               >
@@ -105,7 +114,7 @@ export function AppShell() {
             </p>
           )}
 
-          <main className="mt-8 animate-rise" key={pathname}>
+          <main className="mt-8" key={pathname}>
             <Outlet />
           </main>
         </div>
