@@ -222,7 +222,7 @@ export function GuardPage() {
   return (
     <>
       <PageHead title="Guard app" lede="Rings when a camera sees the Signal for Help." />
-      <div className="grid gap-3.5 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-start">
+      <div className="stagger grid gap-3.5 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-start">
         <div className="w-full max-w-[460px]">{view}</div>
         <Card notch className="hidden p-6 lg:block">
           <h2 className="text-[19px] font-medium tracking-[-0.03em]">When your phone rings</h2>
@@ -423,7 +423,7 @@ function RingCard({
       ref={regionRef}
       role="region"
       aria-label={`Help signal at ${ring.cameraLabel}`}
-      className="hero-gradient animate-rise scroll-mt-4 rounded-[26px] p-3"
+      className="hero-gradient animate-deal scroll-mt-4 rounded-[26px] p-3"
     >
       <p role="alert" className="sr-only">
         Help signal at {ring.cameraLabel}.{" "}
@@ -465,7 +465,10 @@ function RingCard({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[44px] leading-none font-bold tracking-[-0.05em] tabular">
+            <span
+              key={seconds}
+              className="inline-block animate-tick text-[44px] leading-none font-bold tracking-[-0.05em] tabular"
+            >
               {seconds}
             </span>
             <span className="mt-1 text-[11px] font-semibold text-white/90">seconds</span>
@@ -525,7 +528,7 @@ function RespondingCard({ alert, now }: { alert: Alert | undefined; now: number 
   const snapshot = alert?.snapshotUrl && !imageFailed ? alert.snapshotUrl : null;
   return (
     <Deck>
-      <Card tone="inverse" className="animate-rise p-6">
+      <Card tone="inverse" className="animate-deal p-6">
         <div className="flex items-center justify-between">
           <Chip tone="gold">On the way</Chip>
           {alert && (

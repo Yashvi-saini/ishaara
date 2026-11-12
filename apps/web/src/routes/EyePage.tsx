@@ -193,7 +193,7 @@ export function EyePage() {
         </Notice>
       )}
 
-      <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-12">
+      <div className="stagger grid grid-cols-1 gap-3.5 lg:grid-cols-12">
         <div className="flex flex-col lg:col-span-8">
           <div className="relative isolate aspect-[4/3] overflow-hidden rounded-[26px] bg-tile sm:aspect-[16/10] lg:aspect-auto lg:min-h-[420px] lg:flex-1">
             <CameraFeed
@@ -262,7 +262,11 @@ export function EyePage() {
               >
                 <span className="relative flex size-20 items-center justify-center">
                   <span className="absolute inset-0 animate-ping-soft rounded-full bg-white/30" />
-                  <span className="relative flex size-16 items-center justify-center rounded-full bg-white text-accent-ink">
+                  <span
+                    className="absolute inset-0 animate-ping-soft rounded-full bg-white/20"
+                    style={{ animationDelay: "0.5s" }}
+                  />
+                  <span className="relative flex size-16 animate-burst items-center justify-center rounded-full bg-white text-accent-ink">
                     <Send aria-hidden="true" className="size-7" />
                   </span>
                 </span>
@@ -304,7 +308,7 @@ export function EyePage() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-3.5 lg:col-span-4">
+        <div className="stagger flex flex-col gap-3.5 lg:col-span-4">
           <Card notch className="p-6">
             <CardHead title="This camera" />
             <label htmlFor={selectId} className="mt-5 block text-[13px] font-semibold text-ink-2">
