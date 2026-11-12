@@ -20,6 +20,7 @@ let store: AppStore = {
 };
 const listeners = new Set<() => void>();
 let started = false;
+let livePresence: Partial<Pick<AppState, "guardsOnShift" | "camerasOnline">> = {};
 
 function update(patch: Partial<AppStore>): void {
   store = { ...store, ...patch };
@@ -28,8 +29,9 @@ function update(patch: Partial<AppStore>): void {
 
 async function load(): Promise<void> {
   try {
-    const data = await getState();
-    update({ status: "ready", data, error: null, clockOffset: data.serverTime - Date.now() });
+    const loaded = await getState();
+    const data = { ...loaded, ...livePresence };
+    update({ status: "ready", data, error: null, clockOffset: loaded.serverTime - Date.now() });
   } catch (error) {
     if (store.data) return;
     update({
@@ -54,13 +56,18 @@ function start(): void {
     update({ connected: true });
     void load();
   });
-  socket.on("disconnect", () => update({ connected: false }));
+  socket.on("disconnect", () => {
+    livePresence = {};
+    update({ connected: false });
+  });
   socket.on("alert:new", upsertAlert);
   socket.on("alert:update", upsertAlert);
   socket.on("guard:presence", (guardsOnShift) => {
+    livePresence = { ...livePresence, guardsOnShift };
     if (store.data) update({ data: { ...store.data, guardsOnShift } });
   });
   socket.on("camera:presence", (camerasOnline) => {
+    livePresence = { ...livePresence, camerasOnline };
     if (store.data) update({ data: { ...store.data, camerasOnline } });
   });
   socket.connect();
