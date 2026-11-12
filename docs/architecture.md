@@ -96,19 +96,21 @@ The service worker loads pages network first and falls back to the cached app wh
 
 ## Design system
 
-All colours are CSS variables in `apps/web/src/styles/index.css` (Tailwind `@theme`). The default Tailwind palette is switched off, so only these tokens can be used.
+The look comes from the Ishaara Figma Make design: a warm grey frame, soft cards with folder-tab notches, one molten orange hero surface per screen, and a dark "deck" card for the most important panel. Light and dark themes are both supported; the toggle in the top bar stores the choice per device.
 
-| Token                           | Use                                   |
-| ------------------------------- | ------------------------------------- |
-| `canvas`, `surface`, `sunken`   | Page, card and inset backgrounds      |
-| `line`, `line-strong`           | 1px borders                           |
-| `ink`, `ink-muted`, `ink-faint` | Text                                  |
-| `accent`                        | Primary actions and focus (deep blue) |
-| `alert`                         | Active alert (red)                    |
-| `ringing`                       | Ringing (amber)                       |
-| `ok`                            | Responding or resolved (green)        |
+All colours are CSS variables in `apps/web/src/styles/index.css`, defined once for light and again under `[data-theme="dark"]`, then exposed to Tailwind through `@theme inline`. The default Tailwind palette is switched off, so only these tokens can be used.
 
-UI primitives live in `apps/web/src/components/ui`: Button, Card, Dialog, EmptyState, PageHeader, Select, StatusDot, Toggle. Motion is limited to one alert flash and a ringing pulse, and both are switched off under `prefers-reduced-motion`.
+| Token                                 | Use                                          |
+| ------------------------------------- | -------------------------------------------- |
+| `backdrop`, `shell`, `card`, `sunken` | Page, frame, card and inset backgrounds      |
+| `ink`, `ink-2`, `ink-3`, `line`       | Text and hairlines                           |
+| `inverse`, `inverse-ink`, `tile`      | Dark deck cards and icon tiles               |
+| `accent`, `accent-fill`, `accent-ink` | Unconfirmed alerts, ringing, primary actions |
+| `gold`, `on-gold`, `gold-ink`         | Responding, confirmed and resolved           |
+
+Status meaning: orange is an alert nobody has confirmed yet, gold is a guard responding or a confirmed step, ink is resolved, muted grey is a false alarm or offline.
+
+UI primitives live in `apps/web/src/components/ui`: Button, Card, CardHead, Deck, Chip, Dialog, Dot, Dashes, IconTile, Kbd, Mark, Notice, PageHead, Segmented, Select, ServerProblem, Toggle. The app frame and navigation are in `components/shell/AppShell.tsx`. Every looping animation (alert ping, ringing breathe, route march) stops under `prefers-reduced-motion`.
 
 ## Gesture detection
 
@@ -222,4 +224,4 @@ The engine takes its clock as a parameter. Tests pass a fake clock and move time
 - **Shared types without a shared package.** The web app imports `apps/server/src/types.ts` as types only. Nothing from the server is bundled into the browser.
 - **No database.** Cameras and guards come from a seed JSON file; alerts live in memory. This keeps the demo free of external services that could fail.
 - **Settings come from the server.** Demo mode and timer lengths are read from the server at runtime, so one build works in both modes.
-- **Fonts are bundled.** IBM Plex Sans ships with the app, so the UI looks the same on venue WiFi or offline.
+- **Fonts are bundled.** Manrope ships with the app, so the UI looks the same on venue WiFi or offline.

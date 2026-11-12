@@ -69,22 +69,19 @@ MediaPipe landmarks: 0 wrist, 4 thumb tip, 8/12/16/20 fingertips, 6/10/14/18 mid
 
 ## UI rules
 
-It must look like a serious control-room tool, not a flashy AI demo.
+The UI follows the Ishaara Figma Make design (file `QIGtlL1qwkIfY84DC8ljBu`, "ishaara (Copy) (Copy)"). When in doubt, match that design rather than inventing a new style. It must still read as a calm, trustworthy safety tool.
 
-Never use: neon colours, glows, gradients, glassmorphism, blurred blobs, animated backgrounds, pill-shaped chips, tag clouds, sparkle icons, emoji, all-caps labels, oversized hero text, heavy shadows, lorem ipsum.
-
-Use:
-
-- Neutral palette: white or very light grey surfaces, grey 1px borders, near-black text, one deep blue accent for primary actions and focus.
-- Colour for meaning only: red is an active alert, amber is ringing, green is responding or resolved. Status is text plus a small dot or a left border, never a chip.
-- IBM Plex Sans with a system fallback, a clear type scale, sentence case, tabular numbers for timers.
-- 8px spacing grid, 6px radius, generous whitespace, aligned layouts.
-- lucide icons at 16 to 20px, sparingly, always with a text label.
-- Motion only with purpose: one brief flash when an alert arrives, a subtle pulse while ringing. Respect `prefers-reduced-motion`.
-- WCAG AA contrast, visible keyboard focus, labelled controls.
+- Warm neutral palette: grey backdrop, a rounded app frame, soft `card` surfaces, near-black ink. Light and dark themes, both from the same tokens.
+- One molten orange `hero-gradient` surface per screen at most (Home hero, the ringing Guard card, the unconfirmed alert banner, the Eye "signal sent" flash). Dark `inverse` deck cards hold the most important panel.
+- Colour carries meaning: orange is unconfirmed or ringing, gold is responding or confirmed, ink is resolved, muted grey is false alarm or offline. Always pair colour with text.
+- Manrope (bundled with `@fontsource/manrope`), sentence case, tight negative tracking on headings, tabular numbers for times and counts.
+- Rounded shapes: 26px cards, 18px insets, pill buttons and chips. Lucide icons at 14 to 20px with a text label.
+- Motion with purpose only: page rise, alert ping, ringing breathe, route march. All of it stops under `prefers-reduced-motion`.
+- WCAG AA contrast in both themes, visible keyboard focus, labelled controls.
 - Command is desktop-first. Guard and Learn are mobile-first.
-- Real empty, loading and error states in plain words, such as "No active alerts. 6 cameras online."
-- All colours are CSS variables. UI primitives live in `apps/web/src/components/ui` (Button, Card, Dialog, StatusDot, PageHeader, EmptyState) and are reused everywhere.
+- Real empty, loading and error states in plain words, such as "No active alerts. 6 of 6 cameras online."
+- No emoji, no lorem ipsum, no fake data presented as real.
+- All colours are CSS variables. UI primitives live in `apps/web/src/components/ui` and are reused everywhere; the frame and navigation live in `components/shell/AppShell.tsx`.
 
 ## Git
 

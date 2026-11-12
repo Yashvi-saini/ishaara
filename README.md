@@ -115,7 +115,7 @@ Camera device (browser)              Server (Node, one process)              Scr
 | ---------------- | ------------------------------------------------------------------------------------- |
 | Hand tracking    | MediaPipe Hand Landmarker (`@mediapipe/tasks-vision`), in a Web Worker, model bundled |
 | Gesture rules    | `packages/gesture`, pure TypeScript                                                   |
-| Web app          | React 19, Vite, Tailwind CSS 4, React Router, lucide icons, IBM Plex Sans             |
+| Web app          | React 19, Vite, Tailwind CSS 4, React Router, lucide icons, Manrope                   |
 | Server           | Node 22, Express 5, Socket.io 4                                                       |
 | Phone calls      | Twilio Programmable Voice REST API (optional, no SDK)                                 |
 | Install, offline | Web app manifest and service worker                                                   |
@@ -258,7 +258,7 @@ ishaara/
     web/                    React app: the five screens
       public/               PWA manifest, service worker, icons, hand-tracking model
       src/routes/           Home, Eye, Command, Guard, Learn pages
-      src/components/ui/    Button, Card, Dialog, EmptyState, PageHeader, Select, StatusDot, Toggle
+      src/components/ui/    Button, Card, Chip, Dialog, PageHead, Select, Toggle and other primitives
       src/components/       camera/, command/, learn/
       src/lib/              API, socket, shared state, camera hooks, sound, PWA
       src/workers/          MediaPipe hand tracker
