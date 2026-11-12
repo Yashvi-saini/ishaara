@@ -12,13 +12,24 @@ import {
   UserCheck,
 } from "lucide-react";
 import { Link } from "react-router";
-import { HandSign, type HandPose } from "../components/signal/HandSign";
-import { Card, CheckBadge, Chip, Dashes, Deck, IconTile, PageHead } from "../components/ui";
+import { useSignalLoop } from "../components/signal/SignalHand";
+import { SignalStage } from "../components/signal/SignalStage";
+import {
+  Card,
+  CheckBadge,
+  Chip,
+  CountUp,
+  Dashes,
+  Deck,
+  IconTile,
+  PageHead,
+} from "../components/ui";
 import { isOpen } from "../lib/alerts";
 import { useAppState } from "../lib/appState";
 import { cn } from "../lib/cn";
 import { formatLongDate } from "../lib/format";
 import { useDocumentTitle, useNow } from "../lib/hooks";
+import { useTilt } from "../lib/motion";
 
 const STEPS: { icon: LucideIcon; title: string; body: string }[] = [
   {
@@ -69,12 +80,6 @@ const SCREENS: { to: string; icon: LucideIcon; title: string; body: string; who:
   },
 ];
 
-const SEQUENCE: [HandPose, string, string][] = [
-  [1, "Show your palm", "Open hand to the camera"],
-  [2, "Tuck your thumb", "Fold thumb across palm"],
-  [3, "Trap with fingers", "Close fingers over thumb"],
-];
-
 const PRIVACY = [
   "No faces are identified. The model only finds hand points.",
   "No video is recorded. One snapshot is sent, only after the signal.",
@@ -84,17 +89,21 @@ const PRIVACY = [
 export function HomePage() {
   useDocumentTitle("Ishaara");
   const now = useNow(60_000);
+  const pose = useSignalLoop();
+  const tilt = useTilt<HTMLElement>(5);
 
   return (
     <>
       <PageHead title="Overview" chip={<Chip>{formatLongDate(now)}</Chip>} />
 
-      <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-12">
+      <div className="stagger grid grid-cols-1 gap-3.5 lg:grid-cols-12">
         <Card
+          ref={tilt}
           tone="hero"
-          className="grid min-h-0 grid-cols-1 gap-6 p-6 sm:grid-cols-12 sm:p-7 lg:col-span-7"
+          className="tilt grid min-h-0 grid-cols-1 gap-6 p-6 sm:grid-cols-12 sm:p-7 lg:col-span-7"
         >
-          <div className="flex flex-col justify-between gap-6 sm:col-span-7">
+          <span aria-hidden="true" className="tilt-sheen" />
+          <div className="tilt-layer flex flex-col justify-between gap-6 [--depth:6px] sm:col-span-7">
             <div>
               <Chip tone="glass">International Signal for Help</Chip>
               <h2 className="mt-5 max-w-[13ch] text-[38px] leading-[1.03] font-medium tracking-[-0.05em] text-balance sm:text-[46px]">
@@ -122,39 +131,7 @@ export function HomePage() {
             </div>
           </div>
 
-          <div className="glass flex flex-col justify-between gap-3 rounded-[20px] p-4 sm:col-span-5 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[12px] font-semibold text-white/90">
-                Silent 3-step sequence
-              </span>
-              <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-semibold text-white tabular">
-                &lt; 2 s
-              </span>
-            </div>
-            <ol className="grid grid-cols-1 gap-2">
-              {SEQUENCE.map(([pose, label, hint]) => (
-                <li
-                  key={pose}
-                  className="flex items-center gap-3 rounded-[14px] bg-black/20 px-3 py-2.5 ring-1 ring-white/10"
-                >
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-[10px] bg-white/10">
-                    <HandSign pose={pose} tone="light" className="h-9" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[13px] leading-tight font-semibold text-white">
-                      {pose}. {label}
-                    </span>
-                    <span className="mt-0.5 block text-[11px] leading-tight text-white/90">
-                      {hint}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <p className="text-[11px] leading-snug text-white/90">
-              One smooth movement towards any help-point camera alerts security.
-            </p>
-          </div>
+          <SignalStage pose={pose} className="sm:col-span-5" />
         </Card>
 
         <Deck className="lg:col-span-5">
@@ -305,7 +282,7 @@ function CampusNow() {
                     metric.hot && "text-accent-ink",
                   )}
                 >
-                  {metric.value}
+                  <CountUp value={metric.value} />
                   <span className="text-[16px] font-semibold text-ink-3">{metric.of}</span>
                 </dd>
               </div>
