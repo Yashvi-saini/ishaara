@@ -5,6 +5,7 @@ import {
   type SignalEvent,
 } from "@ishaara/gesture";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { cameraProfile } from "./device";
 import { createHandTracker } from "./handTracker";
 import { clearCanvas, drawHands } from "./overlay";
 import { captureSnapshot } from "./snapshot";
@@ -24,11 +25,6 @@ export interface SignalCameraOptions {
   onSignal: (event: SignalEvent, snapshot: string | null) => void;
 }
 
-const CONSTRAINTS: MediaStreamConstraints = {
-  audio: false,
-  video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
-};
-
 function classifyCameraError(error: unknown): CameraState {
   const name = error instanceof DOMException ? error.name : "";
   if (name === "NotAllowedError" || name === "SecurityError") return "blocked";
@@ -43,6 +39,7 @@ export function useSignalCamera({ cooldownMs, showTracking, onSignal }: SignalCa
   const detectorRef = useRef<SignalDetector | null>(null);
   const onSignalRef = useRef(onSignal);
   const showTrackingRef = useRef(showTracking);
+  const [profile] = useState(cameraProfile);
 
   const [camera, setCamera] = useState<CameraState>("starting");
   const [cameraAttempt, setCameraAttempt] = useState(0);
@@ -69,7 +66,7 @@ export function useSignalCamera({ cooldownMs, showTracking, onSignal }: SignalCa
         return;
       }
       try {
-        stream = await navigator.mediaDevices.getUserMedia(CONSTRAINTS);
+        stream = await navigator.mediaDevices.getUserMedia(profile.constraints);
         if (cancelled) return;
         element.srcObject = stream;
         await element.play();
@@ -85,7 +82,7 @@ export function useSignalCamera({ cooldownMs, showTracking, onSignal }: SignalCa
       for (const track of stream?.getTracks() ?? []) track.stop();
       video.srcObject = null;
     };
-  }, [cameraAttempt]);
+  }, [cameraAttempt, profile]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -99,7 +96,7 @@ export function useSignalCamera({ cooldownMs, showTracking, onSignal }: SignalCa
     const detector = createSignalDetector({ cooldownMs, aspectRatio });
     detectorRef.current = detector;
 
-    const tracker = createHandTracker(video, {
+    const tracker = createHandTracker(video, profile, {
       onReady: () => setTracking("ready"),
       onError: (message) => {
         console.error("Hand tracking failed to start:", message);
@@ -127,7 +124,7 @@ export function useSignalCamera({ cooldownMs, showTracking, onSignal }: SignalCa
       detectorRef.current = null;
       clearCanvas(canvas);
     };
-  }, [camera, cooldownMs, trackingAttempt]);
+  }, [camera, cooldownMs, profile, trackingAttempt]);
 
   const retryCamera = useCallback(() => setCameraAttempt((count) => count + 1), []);
   const retryTracking = useCallback(() => setTrackingAttempt((count) => count + 1), []);
