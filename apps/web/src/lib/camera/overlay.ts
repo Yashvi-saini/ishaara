@@ -37,9 +37,9 @@ function readPalette(): Palette {
   const styles = getComputedStyle(document.documentElement);
   const read = (name: string, fallback: string) => styles.getPropertyValue(name).trim() || fallback;
   palette = {
-    line: read("--color-surface", "#ffffff"),
-    idle: read("--color-accent", "#1d4a94"),
-    step: read("--color-ringing-mark", "#c98a00"),
+    line: read("--inverse-ink", "#f4f2ef"),
+    idle: read("--accent", "#e2581c"),
+    step: read("--gold", "#c8963c"),
   };
   return palette;
 }
