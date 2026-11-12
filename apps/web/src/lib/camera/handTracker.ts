@@ -16,7 +16,85 @@ export interface HandTracker {
   stop(): void;
 }
 
+interface Session {
+  ready(delegate: TrackerDelegate): void;
+  hands(hands: Landmark[][], timestamp: number): void;
+  fail(message: string): void;
+}
+
+interface Engine {
+  worker: Worker;
+  numHands: number;
+  delegate: TrackerDelegate;
+  ready: boolean;
+  idle: boolean;
+  sender: Session | null;
+}
+
 let gpuUnavailable = false;
+let engine: Engine | null = null;
+let session: Session | null = null;
+
+function send(target: Engine, message: TrackerRequest, transfer: Transferable[] = []): void {
+  target.worker.postMessage(message, transfer);
+}
+
+function launch(numHands: number, delegate: TrackerDelegate): Engine {
+  const worker = new Worker(new URL("../../workers/handTracker.worker.ts", import.meta.url), {
+    type: "module",
+  });
+  const current: Engine = { worker, numHands, delegate, ready: false, idle: false, sender: null };
+
+  worker.onmessage = (event: MessageEvent<TrackerResponse>) => {
+    if (engine !== current) return;
+    const message = event.data;
+    if (message.type === "ready") {
+      current.ready = true;
+      current.idle = true;
+      session?.ready(delegate);
+    } else if (message.type === "hands") {
+      const sender = current.sender;
+      current.sender = null;
+      current.idle = true;
+      if (sender && sender === session) sender.hands(message.hands, message.timestamp);
+    } else if (!current.ready) {
+      failBeforeReady(current, message.message);
+    } else {
+      console.warn("Hand tracking skipped a frame:", message.message);
+    }
+  };
+
+  worker.onerror = (event) => {
+    if (engine === current && !current.ready) failBeforeReady(current, event.message);
+  };
+
+  send(current, {
+    type: "init",
+    wasmPath: new URL("/mediapipe/wasm", window.location.origin).href,
+    modelPath: new URL("/mediapipe/hand_landmarker.task", window.location.origin).href,
+    numHands,
+    delegate,
+  });
+  return current;
+}
+
+function failBeforeReady(failed: Engine, message: string): void {
+  failed.worker.terminate();
+  if (failed.delegate === "GPU") {
+    console.warn("GPU hand tracking unavailable, using CPU:", message);
+    gpuUnavailable = true;
+    engine = launch(failed.numHands, "CPU");
+  } else {
+    engine = null;
+    session?.fail(message);
+  }
+}
+
+export function warmHandTracker(numHands: number): void {
+  if (engine && engine.numHands === numHands) return;
+  engine?.worker.terminate();
+  engine = launch(numHands, gpuUnavailable ? "CPU" : "GPU");
+}
 
 export function createHandTracker(
   video: HTMLVideoElement,
@@ -24,16 +102,10 @@ export function createHandTracker(
   callbacks: HandTrackerCallbacks,
 ): HandTracker {
   const watchesVideoFrames = "requestVideoFrameCallback" in video;
-  let worker: Worker | null = null;
   let stopped = false;
-  let ready = false;
-  let workerIdle = false;
-  let newFrameWaiting = false;
+  let watching = false;
+  let newFrameWaiting = true;
   let frameHandle = 0;
-
-  function send(message: TrackerRequest, transfer: Transferable[] = []): void {
-    worker?.postMessage(message, transfer);
-  }
 
   function watchNextFrame(): void {
     if (stopped) return;
@@ -45,20 +117,21 @@ export function createHandTracker(
   function onVideoFrame(): void {
     if (stopped) return;
     newFrameWaiting = true;
-    if (workerIdle) void sendFrame();
+    pump();
     watchNextFrame();
   }
 
-  function becomeIdle(): void {
-    workerIdle = true;
-    if (newFrameWaiting) void sendFrame();
+  function pump(): void {
+    const current = engine;
+    if (stopped || !newFrameWaiting || !current?.ready || !current.idle) return;
+    current.idle = false;
+    newFrameWaiting = false;
+    void sendFrame(current);
   }
 
-  async function sendFrame(): Promise<void> {
-    workerIdle = false;
-    newFrameWaiting = false;
+  async function sendFrame(current: Engine): Promise<void> {
     if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || video.videoWidth === 0) {
-      workerIdle = true;
+      current.idle = true;
       return;
     }
     try {
@@ -69,73 +142,48 @@ export function createHandTracker(
         resizeHeight: Math.round(video.videoHeight * scale),
         resizeQuality: "low",
       });
-      if (stopped) {
+      if (stopped || engine !== current) {
         bitmap.close();
+        current.idle = true;
         return;
       }
-      send({ type: "frame", bitmap, timestamp: performance.now() }, [bitmap]);
+      current.sender = attached;
+      send(current, { type: "frame", bitmap, timestamp: performance.now() }, [bitmap]);
     } catch {
-      workerIdle = true;
+      current.idle = true;
     }
   }
 
-  function failBeforeReady(delegate: TrackerDelegate, message: string): void {
-    if (delegate === "GPU") {
-      console.warn("GPU hand tracking unavailable, using CPU:", message);
-      gpuUnavailable = true;
-      worker?.terminate();
-      start("CPU");
-    } else {
-      callbacks.onError(message);
-    }
-  }
-
-  function start(delegate: TrackerDelegate): void {
-    const current = new Worker(new URL("../../workers/handTracker.worker.ts", import.meta.url), {
-      type: "module",
-    });
-    worker = current;
-
-    current.onmessage = (event: MessageEvent<TrackerResponse>) => {
-      if (stopped || worker !== current) return;
-      const message = event.data;
-      if (message.type === "ready") {
-        ready = true;
-        callbacks.onReady(message.delegate);
-        newFrameWaiting = true;
-        becomeIdle();
+  const attached: Session = {
+    ready(delegate) {
+      if (stopped) return;
+      callbacks.onReady(delegate);
+      if (!watching) {
+        watching = true;
         watchNextFrame();
-      } else if (message.type === "hands") {
-        callbacks.onHands(message.hands, message.timestamp);
-        becomeIdle();
-      } else if (!ready) {
-        failBeforeReady(delegate, message.message);
-      } else {
-        console.warn("Hand tracking skipped a frame:", message.message);
       }
-    };
+      pump();
+    },
+    hands(hands, timestamp) {
+      if (stopped) return;
+      callbacks.onHands(hands, timestamp);
+      pump();
+    },
+    fail(message) {
+      if (!stopped) callbacks.onError(message);
+    },
+  };
 
-    current.onerror = (event) => {
-      if (!stopped && !ready && worker === current) failBeforeReady(delegate, event.message);
-    };
-
-    send({
-      type: "init",
-      wasmPath: new URL("/mediapipe/wasm", window.location.origin).href,
-      modelPath: new URL("/mediapipe/hand_landmarker.task", window.location.origin).href,
-      numHands,
-      delegate,
-    });
-  }
-
-  start(gpuUnavailable ? "CPU" : "GPU");
+  session = attached;
+  warmHandTracker(numHands);
+  if (engine?.ready) attached.ready(engine.delegate);
 
   return {
     stop() {
       stopped = true;
+      if (session === attached) session = null;
       if (watchesVideoFrames) video.cancelVideoFrameCallback(frameHandle);
       else cancelAnimationFrame(frameHandle);
-      worker?.terminate();
     },
   };
 }

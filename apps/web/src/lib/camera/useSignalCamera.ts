@@ -6,7 +6,7 @@ import {
 } from "@ishaara/gesture";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cameraProfile } from "./device";
-import { createHandTracker } from "./handTracker";
+import { createHandTracker, warmHandTracker } from "./handTracker";
 import { clearCanvas, drawHands } from "./overlay";
 import { captureSnapshot } from "./snapshot";
 
@@ -46,6 +46,10 @@ export function useSignalCamera({ cooldownMs, showTracking, onSignal }: SignalCa
   const [tracking, setTracking] = useState<TrackingState>("waiting");
   const [trackingAttempt, setTrackingAttempt] = useState(0);
   const [view, setView] = useState<DetectionView>({ status: "watching", handsInView: 0 });
+
+  useEffect(() => {
+    warmHandTracker(profile.numHands);
+  }, [profile]);
 
   useEffect(() => {
     onSignalRef.current = onSignal;
