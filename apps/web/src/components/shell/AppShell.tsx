@@ -1,10 +1,11 @@
-import { Moon, Sun } from "lucide-react";
+import { Download, Moon, Sun } from "lucide-react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { needsResponder } from "../../lib/alerts";
 import { useAppState } from "../../lib/appState";
 import { cn } from "../../lib/cn";
+import { useInstallPrompt } from "../../lib/pwa";
 import { useTheme } from "../../lib/theme";
-import { Mark } from "../ui";
+import { Button, Mark } from "../ui";
 
 const NAV = [
   { to: "/eye", label: "Eye" },
@@ -19,6 +20,7 @@ const iconMotion =
 export function AppShell() {
   const { pathname } = useLocation();
   const [theme, setTheme] = useTheme();
+  const { canInstall, install } = useInstallPrompt();
   const app = useAppState();
   const unanswered = app.data?.alerts.filter(needsResponder).length ?? 0;
   const lostConnection = app.data !== null && !app.connected;
@@ -71,6 +73,11 @@ export function AppShell() {
             </div>
 
             <div className="ml-auto flex items-center gap-2">
+              {canInstall && (
+                <Button variant="ink" icon={Download} onClick={() => void install()}>
+                  Install app
+                </Button>
+              )}
               <button
                 type="button"
                 onClick={(event) => {
