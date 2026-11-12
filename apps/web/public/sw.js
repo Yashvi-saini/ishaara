@@ -1,4 +1,4 @@
-const VERSION = "ishaara-v2";
+const VERSION = "ishaara-v3";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const SHELL = ["/", "/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png"];

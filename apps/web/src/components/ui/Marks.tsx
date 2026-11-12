@@ -77,15 +77,15 @@ export function Kbd({ children }: { children: ReactNode }) {
 
 export function Mark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
-      <rect x="3" y="3" width="26" height="26" rx="9" fill="currentColor" />
+    <svg viewBox="-45 14 340 340" className={className} aria-hidden="true">
       <path
-        d="M10.5 23V13.2M14.2 23V9.6M17.9 23V9.6M21.6 23V12"
-        stroke="var(--shell)"
-        strokeWidth="2.6"
+        d="M60 68V170M110 32V165M162 68V235A35 35 0 0 1 127 270H98M215 128V245A90 90 0 0 1 35 245A38 38 0 0 1 73 207Q92 207 105 218"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="24"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <rect x="8.8" y="16.8" width="14.6" height="3.6" rx="1.8" fill="var(--accent)" />
     </svg>
   );
 }
