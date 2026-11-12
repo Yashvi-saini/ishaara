@@ -1,13 +1,15 @@
 import { Camera, Check, ExternalLink, Lock, RotateCcw, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CameraFeed } from "../components/camera/CameraFeed";
-import { HandSign, type HandPose } from "../components/signal/HandSign";
+import { SignalHand, useSignalLoop, type HandPose } from "../components/signal/SignalHand";
+import { SignalStage } from "../components/signal/SignalStage";
 import { SignalStageBar } from "../components/signal/SignalStageBar";
 import { Button, Card, CardHead, Chip, Dashes, Deck, PageHead } from "../components/ui";
 import { playChime, unlockAudio } from "../lib/audio";
 import { useSignalCamera } from "../lib/camera/useSignalCamera";
 import { cn } from "../lib/cn";
 import { useDocumentTitle } from "../lib/hooks";
+import { useTilt } from "../lib/motion";
 
 const PRACTICE_COOLDOWN_MS = 2000;
 const FLASH_MS = 2400;
@@ -49,77 +51,20 @@ export function LearnPage() {
         lede="One hand movement that asks for help without a phone or a word."
       />
 
-      <ol className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
-        {STEPS.map((step, index) => {
-          const dark = index === 2;
-          return (
-            <Card
-              key={step.title}
-              as="li"
-              notch={
-                <Chip tone="outline" size="sm" className="bg-card">
-                  Step {index + 1}
-                </Chip>
-              }
-              className="flex flex-col p-3"
-            >
-              <div
-                className={cn(
-                  "relative isolate flex aspect-[5/4] items-end justify-center overflow-hidden rounded-[18px]",
-                  dark
-                    ? "bg-inverse"
-                    : "bg-[radial-gradient(circle_at_50%_76%,var(--card)_0%,var(--sunken)_66%)]",
-                )}
-              >
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "absolute inset-x-[14%] bottom-[10%] h-[55%] rounded-full blur-3xl",
-                    dark ? "bg-accent/20" : "bg-white/70 dark:bg-white/[0.04]",
-                  )}
-                />
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "absolute top-5 left-5 text-[11px] font-bold tracking-[0.14em] uppercase",
-                    dark ? "text-white/60" : "text-ink-3",
-                  )}
-                >
-                  Form 0{index + 1}
-                </span>
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "absolute top-5 right-5 h-px w-12",
-                    dark ? "bg-white/20" : "bg-ink/15",
-                  )}
-                />
-                <HandSign
-                  pose={step.pose}
-                  tone={dark ? "light" : "ink"}
-                  className="relative z-10 h-[84%] translate-y-[10%]"
-                />
-              </div>
-              <div className="flex flex-1 flex-col p-4 pt-5">
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-[20px] font-medium tracking-[-0.035em]">{step.title}</h2>
-                  <Dashes filled={index + 1} />
-                </div>
-                <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">{step.body}</p>
-              </div>
-            </Card>
-          );
-        })}
+      <ol className="stagger grid grid-cols-1 gap-3.5 md:grid-cols-3">
+        {STEPS.map((step, index) => (
+          <StepCard key={step.title} step={step} index={index} />
+        ))}
       </ol>
       <p className="mt-4 px-2 text-[13px] text-ink-2">
         It is one smooth movement, not a held pose. Ishaara looks for the tucked-thumb palm and then
         the closed hand, in that order.
       </p>
 
-      <div className="mt-8 grid grid-cols-1 gap-3.5 lg:grid-cols-12">
+      <div className="stagger mt-8 grid grid-cols-1 gap-3.5 lg:grid-cols-12">
         <Practice />
 
-        <div className="flex flex-col gap-3.5 lg:col-span-5">
+        <div className="stagger flex flex-col gap-3.5 lg:col-span-5">
           <Card notch className="p-6">
             <CardHead title="What happens on campus" />
             <ol className="mt-5 flex flex-col">
@@ -179,9 +124,71 @@ export function LearnPage() {
   );
 }
 
+function StepCard({ step, index }: { step: (typeof STEPS)[number]; index: number }) {
+  const dark = index === 2;
+  const tilt = useTilt<HTMLElement>(7);
+  return (
+    <Card
+      ref={tilt}
+      as="li"
+      notch={
+        <Chip tone="outline" size="sm" className="bg-card">
+          Step {index + 1}
+        </Chip>
+      }
+      className="tilt flex flex-col p-3"
+    >
+      <div
+        className={cn(
+          "relative isolate flex aspect-[5/4] items-end justify-center overflow-hidden rounded-[18px]",
+          dark
+            ? "bg-inverse"
+            : "bg-[radial-gradient(circle_at_50%_76%,var(--card)_0%,var(--sunken)_66%)]",
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className={cn(
+            "tilt-layer absolute inset-x-[14%] bottom-[10%] h-[55%] rounded-full blur-3xl [--depth:-10px]",
+            dark ? "bg-accent/20" : "bg-white/70 dark:bg-white/[0.04]",
+          )}
+        />
+        {dark && <span aria-hidden="true" className="tilt-sheen" />}
+        <span
+          aria-hidden="true"
+          className={cn(
+            "absolute top-5 left-5 text-[11px] font-bold tracking-[0.14em] uppercase",
+            dark ? "text-white/60" : "text-ink-3",
+          )}
+        >
+          Form 0{index + 1}
+        </span>
+        <span
+          aria-hidden="true"
+          className={cn("absolute top-5 right-5 h-px w-12", dark ? "bg-white/20" : "bg-ink/15")}
+        />
+        <SignalHand
+          pose={step.pose}
+          tone={dark ? "light" : "ink"}
+          animate={false}
+          className="tilt-layer relative z-10 h-[84%] translate-y-[10%] [--depth:16px]"
+        />
+      </div>
+      <div className="flex flex-1 flex-col p-4 pt-5">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-[20px] font-medium tracking-[-0.035em]">{step.title}</h2>
+          <Dashes filled={index + 1} />
+        </div>
+        <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">{step.body}</p>
+      </div>
+    </Card>
+  );
+}
+
 function Practice() {
   const [running, setRunning] = useState(false);
   const [recognised, setRecognised] = useState(0);
+  const pose = useSignalLoop(!running);
 
   return (
     <Deck className="lg:col-span-7">
@@ -208,13 +215,12 @@ function Practice() {
           {running ? (
             <PracticeFeed onRecognised={() => setRecognised((count) => count + 1)} />
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-              <div aria-hidden="true" className="flex items-end gap-3 opacity-90">
-                {([1, 2, 3] as const).map((pose) => (
-                  <HandSign key={pose} pose={pose} tone="light" className="h-16 sm:h-24" />
-                ))}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-5 text-center sm:p-8">
+              <SignalHand pose={pose} tone="light" className="h-24 sm:hidden" />
+              <div className="hidden w-full max-w-[380px] sm:block">
+                <SignalStage pose={pose} frame={false} />
               </div>
-              <p className="mt-6 max-w-sm text-[14px] leading-relaxed text-inverse-ink-2">
+              <p className="mt-5 max-w-sm text-[13px] leading-relaxed text-inverse-ink-2 sm:text-[14px]">
                 Your browser will ask to use the camera. Make the signal and the page will say
                 “Recognised” when it sees it.
               </p>
@@ -302,7 +308,7 @@ function PracticeFeed({ onRecognised }: { onRecognised: () => void }) {
           role="status"
           className="hero-gradient absolute inset-0 flex animate-rise flex-col items-center justify-center p-6 text-center"
         >
-          <span className="flex size-16 items-center justify-center rounded-full bg-white text-accent-ink">
+          <span className="flex size-16 animate-burst items-center justify-center rounded-full bg-white text-accent-ink">
             <Check aria-hidden="true" className="size-8" strokeWidth={3} />
           </span>
           <p className="mt-5 text-[30px] font-medium tracking-[-0.045em]">Recognised</p>
