@@ -14,6 +14,29 @@ export async function unlockAudio(): Promise<boolean> {
   }
 }
 
+export function unlockAudioOnFirstGesture(onUnlocked: () => void): () => void {
+  const events = ["pointerdown", "keydown", "touchstart"] as const;
+  let done = false;
+  function detach(): void {
+    for (const name of events) window.removeEventListener(name, attempt, true);
+  }
+  function attempt(): void {
+    if (done) return;
+    void unlockAudio().then((ok) => {
+      if (!ok || done) return;
+      done = true;
+      detach();
+      onUnlocked();
+    });
+  }
+  for (const name of events) window.addEventListener(name, attempt, true);
+  attempt();
+  return () => {
+    done = true;
+    detach();
+  };
+}
+
 function beep(at: number, frequency: number, duration: number, volume: number): void {
   if (!context) return;
   const oscillator = context.createOscillator();

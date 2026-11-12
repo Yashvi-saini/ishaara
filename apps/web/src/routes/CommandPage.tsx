@@ -27,12 +27,11 @@ import {
 import { resolveAlert } from "../lib/actions";
 import { currentRing, forwardedFrom, incidentCode, isOpen, needsResponder } from "../lib/alerts";
 import { retryLoad, useAppState, useServerNow } from "../lib/appState";
-import { audioUnlocked, startRinging, unlockAudio } from "../lib/audio";
+import { audioUnlocked, startRinging, unlockAudio, unlockAudioOnFirstGesture } from "../lib/audio";
 import { cn } from "../lib/cn";
 import { formatElapsed, formatLongDate, formatSeconds } from "../lib/format";
 import { useDocumentTitle } from "../lib/hooks";
 import { socket } from "../lib/socket";
-import { useStoredFlag } from "../lib/storage";
 
 function bannerText(alert: Alert): string {
   if (alert.status === "responding")
@@ -46,8 +45,10 @@ export function CommandPage() {
   const now = useServerNow(500);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pinnedFromLog, setPinnedFromLog] = useState(false);
-  const [soundWanted, setSoundWanted] = useStoredFlag("ishaara.command.sound", true);
+  const [soundWanted, setSoundWanted] = useState(true);
   const [soundUnlocked, setSoundUnlocked] = useState(audioUnlocked);
+
+  useEffect(() => unlockAudioOnFirstGesture(() => setSoundUnlocked(true)), []);
 
   const alerts = useMemo(() => app.data?.alerts ?? [], [app.data?.alerts]);
   const openAlerts = useMemo(() => alerts.filter(isOpen), [alerts]);
