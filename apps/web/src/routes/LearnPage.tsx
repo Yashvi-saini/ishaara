@@ -1,122 +1,329 @@
-import { Camera, ExternalLink } from "lucide-react";
-import { useState } from "react";
-import { HandIllustration, type HandStep } from "../components/learn/HandIllustration";
-import { PracticeCamera } from "../components/learn/PracticeCamera";
-import { Button, Card, PageHeader } from "../components/ui";
+import { Camera, Check, ExternalLink, Lock, RotateCcw, Square } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CameraFeed } from "../components/camera/CameraFeed";
+import { HandSign, type HandPose } from "../components/signal/HandSign";
+import { SignalStageBar } from "../components/signal/SignalStageBar";
+import { Button, Card, CardHead, Chip, Dashes, Deck, PageHead } from "../components/ui";
+import { playChime, unlockAudio } from "../lib/audio";
+import { useSignalCamera } from "../lib/camera/useSignalCamera";
+import { cn } from "../lib/cn";
 import { useDocumentTitle } from "../lib/hooks";
 
-const STEPS: { step: HandStep; title: string; detail: string }[] = [
+const PRACTICE_COOLDOWN_MS = 2000;
+const FLASH_MS = 2400;
+
+const STEPS: { pose: HandPose; title: string; body: string }[] = [
   {
-    step: 1,
+    pose: 1,
     title: "Show your palm",
-    detail: "Hold your hand up to the camera, as if for a high-five.",
+    body: "Hold your hand up to the camera, as if for a high-five.",
   },
-  { step: 2, title: "Tuck your thumb in", detail: "Fold your thumb across your palm." },
+  { pose: 2, title: "Tuck your thumb in", body: "Fold your thumb across your palm." },
   {
-    step: 3,
+    pose: 3,
     title: "Fold your fingers down",
-    detail: "Close your fingers over your thumb, trapping it. Do it within two seconds.",
+    body: "Close your fingers over your thumb, trapping it. Do it within two seconds.",
   },
+];
+
+const CAMPUS = [
+  "A camera at a help point sees the signal.",
+  "Security is alerted with the location and one snapshot.",
+  "Guards are rung one at a time, nearest first, until one confirms.",
+  "The guard checks in calmly. Police are called only if she asks or there is danger.",
+];
+
+const BYSTANDER = [
+  "Reach out safely, without alerting the person she is with.",
+  "Ask yes-or-no questions, such as “Do you want me to call security?”",
+  "Call 112 if she asks for police or is in immediate danger.",
 ];
 
 export function LearnPage() {
   useDocumentTitle("Learn the signal");
-  const [practising, setPractising] = useState(false);
-
   return (
-    <div className="min-h-dvh bg-canvas">
-      <PageHeader
-        title="Learn the Signal for Help"
-        description="One hand movement that asks for help without a phone or a word. It takes ten seconds to learn."
+    <>
+      <PageHead
+        title="Learn the signal"
+        chip={<Chip tone="soft">Ten seconds to learn</Chip>}
+        lede="One hand movement that asks for help without a phone or a word."
       />
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        <div className="flex max-w-4xl flex-col gap-6">
-          <section aria-labelledby="steps-heading">
-            <h2 id="steps-heading" className="sr-only">
-              The three steps
-            </h2>
-            <ol className="grid gap-4 sm:grid-cols-3">
-              {STEPS.map((item) => (
-                <li key={item.step}>
-                  <Card className="h-full">
-                    <div className="mx-auto w-32 sm:w-36">
-                      <HandIllustration step={item.step} />
-                    </div>
-                    <p className="mt-4 text-sm text-ink-muted tabular-nums">Step {item.step}</p>
-                    <h3 className="text-base font-semibold text-ink">{item.title}</h3>
-                    <p className="mt-1 text-sm text-ink-muted">{item.detail}</p>
-                  </Card>
+      <ol className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
+        {STEPS.map((step, index) => {
+          const dark = index === 2;
+          return (
+            <Card
+              key={step.title}
+              as="li"
+              notch={
+                <Chip tone="outline" size="sm" className="bg-card">
+                  Step {index + 1}
+                </Chip>
+              }
+              className="flex flex-col p-3"
+            >
+              <div
+                className={cn(
+                  "relative isolate flex aspect-[5/4] items-end justify-center overflow-hidden rounded-[18px]",
+                  dark
+                    ? "bg-inverse"
+                    : "bg-[radial-gradient(circle_at_50%_76%,var(--card)_0%,var(--sunken)_66%)]",
+                )}
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute inset-x-[14%] bottom-[10%] h-[55%] rounded-full blur-3xl",
+                    dark ? "bg-accent/20" : "bg-white/70 dark:bg-white/[0.04]",
+                  )}
+                />
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute top-5 left-5 text-[11px] font-bold tracking-[0.14em] uppercase",
+                    dark ? "text-white/60" : "text-ink-3",
+                  )}
+                >
+                  Form 0{index + 1}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute top-5 right-5 h-px w-12",
+                    dark ? "bg-white/20" : "bg-ink/15",
+                  )}
+                />
+                <HandSign
+                  pose={step.pose}
+                  tone={dark ? "light" : "ink"}
+                  className="relative z-10 h-[84%] translate-y-[10%]"
+                />
+              </div>
+              <div className="flex flex-1 flex-col p-4 pt-5">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-[20px] font-medium tracking-[-0.035em]">{step.title}</h2>
+                  <Dashes filled={index + 1} />
+                </div>
+                <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">{step.body}</p>
+              </div>
+            </Card>
+          );
+        })}
+      </ol>
+      <p className="mt-4 px-2 text-[13px] text-ink-2">
+        It is one smooth movement, not a held pose. Ishaara looks for the tucked-thumb palm and then
+        the closed hand, in that order.
+      </p>
+
+      <div className="mt-8 grid grid-cols-1 gap-3.5 lg:grid-cols-12">
+        <Practice />
+
+        <div className="flex flex-col gap-3.5 lg:col-span-5">
+          <Card notch className="p-6">
+            <CardHead title="What happens on campus" />
+            <ol className="mt-5 flex flex-col">
+              {CAMPUS.map((text, index) => (
+                <li key={text} className="relative flex gap-4 pb-5 last:pb-0">
+                  {index < CAMPUS.length - 1 && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute top-9 left-[15px] h-[calc(100%-2.5rem)] w-px bg-line"
+                    />
+                  )}
+                  <span
+                    className={cn(
+                      "inline-flex size-8 shrink-0 items-center justify-center rounded-[12px] text-[13px] font-bold",
+                      index === 0 ? "bg-accent-fill text-white" : "bg-sunken text-ink",
+                    )}
+                  >
+                    {index + 1}
+                  </span>
+                  <p className="pt-1.5 text-[14px] leading-relaxed">{text}</p>
                 </li>
               ))}
             </ol>
-            <p className="mt-3 text-sm text-ink-muted">
-              It is one smooth movement, not a held pose. Ishaara looks for the tucked-thumb palm
-              and then the closed hand, in that order.
-            </p>
-          </section>
-
-          <Card
-            title="Practise with your camera"
-            description="Practice stays on this device. Nothing is sent to security."
-            padded={!practising}
-          >
-            {practising ? (
-              <PracticeCamera />
-            ) : (
-              <div className="flex flex-col items-start gap-3">
-                <p className="text-sm text-ink-muted">
-                  Your browser will ask to use the camera. Make the signal and the page will say
-                  “Recognised” when it sees it.
-                </p>
-                <Button
-                  variant="primary"
-                  size="lg"
-                  icon={Camera}
-                  onClick={() => setPractising(true)}
-                >
-                  Start practice
-                </Button>
-              </div>
-            )}
           </Card>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Card title="What happens on campus">
-              <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm text-ink">
-                <li>A camera at a help point sees the signal.</li>
-                <li>Security is alerted with the location and one snapshot.</li>
-                <li>Guards are rung until one confirms they are on the way.</li>
-                <li>
-                  The guard checks in calmly. Police are called if you ask or there is danger.
+          <Card className="p-6">
+            <CardHead title="If you see someone make it" />
+            <ul className="mt-3 flex flex-col divide-y divide-line">
+              {BYSTANDER.map((text) => (
+                <li key={text} className="flex gap-3 py-3 text-[14px] leading-relaxed">
+                  <span
+                    aria-hidden="true"
+                    className="mt-2 size-1.5 shrink-0 rounded-full bg-accent"
+                  />
+                  {text}
                 </li>
-              </ol>
-            </Card>
-            <Card title="If you see someone make it">
-              <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-ink">
-                <li>Reach out safely, without alerting the person she is with.</li>
-                <li>Ask yes-or-no questions, such as “Do you want me to call 112?”</li>
-                <li>Let her lead. Call 112 if she asks or you see danger.</li>
-              </ul>
-            </Card>
-          </div>
-
-          <p className="text-sm text-ink-muted">
-            The Signal for Help was created by the{" "}
-            <a
-              href="https://canadianwomen.org/signal-for-help/"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 rounded-md text-accent underline underline-offset-2"
-            >
-              Canadian Women’s Foundation
-              <ExternalLink size={14} aria-hidden="true" />
-              <span className="sr-only">(opens in a new tab)</span>
-            </a>
-            .
-          </p>
+              ))}
+            </ul>
+          </Card>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <p className="mt-8 px-2 text-[13px] text-ink-3">
+        The Signal for Help was created by the{" "}
+        <a
+          href="https://canadianwomen.org/signal-for-help/"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 rounded-md font-semibold text-ink-2 underline underline-offset-4 hover:text-accent-ink"
+        >
+          Canadian Women’s Foundation
+          <ExternalLink aria-hidden="true" className="size-3.5" />
+          <span className="sr-only">(opens in a new tab)</span>
+        </a>
+        .
+      </p>
+    </>
+  );
+}
+
+function Practice() {
+  const [running, setRunning] = useState(false);
+  const [recognised, setRecognised] = useState(0);
+
+  return (
+    <Deck className="lg:col-span-7">
+      <Card tone="inverse" className="p-6 sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-[24px] font-medium tracking-[-0.04em]">
+              Practise with your camera
+            </h2>
+            <p className="mt-1.5 flex items-center gap-1.5 text-[13px] text-inverse-ink-2">
+              <Lock aria-hidden="true" className="size-3.5" /> Practice stays on this device.
+              Nothing is sent to security.
+            </p>
+          </div>
+          {recognised > 0 && (
+            <Chip tone="gold">
+              <Check aria-hidden="true" className="size-3.5" strokeWidth={3} /> Recognised{" "}
+              {recognised}×
+            </Chip>
+          )}
+        </div>
+
+        <div className="relative mt-6 aspect-[16/10] overflow-hidden rounded-[18px] bg-white/[0.04]">
+          {running ? (
+            <PracticeFeed onRecognised={() => setRecognised((count) => count + 1)} />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+              <div aria-hidden="true" className="flex items-end gap-3 opacity-90">
+                {([1, 2, 3] as const).map((pose) => (
+                  <HandSign key={pose} pose={pose} tone="light" className="h-16 sm:h-24" />
+                ))}
+              </div>
+              <p className="mt-6 max-w-sm text-[14px] leading-relaxed text-inverse-ink-2">
+                Your browser will ask to use the camera. Make the signal and the page will say
+                “Recognised” when it sees it.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          {running ? (
+            <Button
+              variant="outline-inverse"
+              icon={Square}
+              size="lg"
+              onClick={() => setRunning(false)}
+            >
+              Stop practice
+            </Button>
+          ) : (
+            <Button
+              variant="accent"
+              icon={Camera}
+              size="lg"
+              onClick={() => {
+                void unlockAudio();
+                setRunning(true);
+              }}
+            >
+              Start practice
+            </Button>
+          )}
+          <span className="text-[12px] text-inverse-ink-2">
+            Palm, thumb in, fingers down. One smooth movement.
+          </span>
+        </div>
+      </Card>
+    </Deck>
+  );
+}
+
+function PracticeFeed({ onRecognised }: { onRecognised: () => void }) {
+  const [flash, setFlash] = useState(false);
+  const timer = useRef(0);
+
+  const onSignal = useCallback(() => {
+    onRecognised();
+    setFlash(true);
+    playChime();
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setFlash(false), FLASH_MS);
+  }, [onRecognised]);
+
+  const camera = useSignalCamera({
+    cooldownMs: PRACTICE_COOLDOWN_MS,
+    showTracking: true,
+    onSignal,
+  });
+
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  return (
+    <>
+      <CameraFeed
+        videoRef={camera.videoRef}
+        canvasRef={camera.canvasRef}
+        camera={camera.camera}
+        tracking={camera.tracking}
+        onRetryCamera={camera.retryCamera}
+        onRetryTracking={camera.retryTracking}
+      />
+      {camera.camera === "live" && camera.tracking === "loading" && (
+        <span className="glass-dark absolute top-4 left-4 inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold text-white">
+          Loading hand model
+        </span>
+      )}
+      {camera.camera === "live" && camera.tracking === "ready" && (
+        <SignalStageBar
+          status={camera.view.status}
+          handsInView={camera.view.handsInView}
+          doneText="Recognised"
+          className="absolute inset-x-4 bottom-4"
+        />
+      )}
+      {flash && (
+        <div
+          role="status"
+          className="hero-gradient absolute inset-0 flex animate-rise flex-col items-center justify-center p-6 text-center"
+        >
+          <span className="flex size-16 items-center justify-center rounded-full bg-white text-accent-ink">
+            <Check aria-hidden="true" className="size-8" strokeWidth={3} />
+          </span>
+          <p className="mt-5 text-[30px] font-medium tracking-[-0.045em]">Recognised</p>
+          <p className="mt-1 text-[14px] text-white/90">
+            That is the Signal for Help. Nothing was sent.
+          </p>
+          <Button
+            variant="glass"
+            size="sm"
+            icon={RotateCcw}
+            className="mt-5"
+            onClick={() => {
+              window.clearTimeout(timer.current);
+              camera.resetDetector();
+              setFlash(false);
+            }}
+          >
+            Practise again
+          </Button>
+        </div>
+      )}
+    </>
   );
 }
