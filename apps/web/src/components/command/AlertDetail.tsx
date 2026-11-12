@@ -1,6 +1,6 @@
 import type { Alert, AlertOutcome, RingAttempt } from "@ishaara/server/types";
 import { ArrowLeft, Camera, Check, CircleCheck, ImageOff, Phone, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   alertStatus,
   cameraCode,
@@ -47,6 +47,14 @@ export function AlertDetail({ alert, now, history, hasLive, onBack, onClose }: A
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageFailed, setImageFailed] = useState(false);
+  const [ripple, setRipple] = useState(0);
+  const previousStatus = useRef(alert.status);
+
+  useEffect(() => {
+    if (previousStatus.current === alert.status) return;
+    previousStatus.current = alert.status;
+    setRipple((count) => count + 1);
+  }, [alert.status]);
 
   const status = alertStatus(alert);
   const open = isOpen(alert);
@@ -66,7 +74,7 @@ export function AlertDetail({ alert, now, history, hasLive, onBack, onClose }: A
   }
 
   return (
-    <article className="animate-rise">
+    <article className="animate-deal">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {history && (
@@ -96,7 +104,17 @@ export function AlertDetail({ alert, now, history, hasLive, onBack, onClose }: A
         {alert.source === "simulated" ? " · Simulated signal" : ""}
       </p>
 
-      <div className="mt-4 flex items-center justify-between gap-3 rounded-[18px] bg-white/[0.06] px-4 py-3">
+      <div className="relative mt-4 flex items-center justify-between gap-3 rounded-[18px] bg-white/[0.06] px-4 py-3">
+        {ripple > 0 && (
+          <span
+            key={ripple}
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none absolute inset-0 animate-ring-out rounded-[18px] ring-2",
+              waiting ? "ring-accent" : open ? "ring-gold" : "ring-white/40",
+            )}
+          />
+        )}
         <span className="flex items-center gap-2.5 text-[14px] font-semibold">
           <Dot
             className={status.tone === "ink" ? "bg-inverse-ink" : toneDot[status.tone]}
@@ -196,11 +214,11 @@ export function AlertDetail({ alert, now, history, hasLive, onBack, onClose }: A
       ) : (
         <div className="mt-5 flex items-center gap-3 rounded-[18px] bg-white/[0.06] px-4 py-3 text-[13px]">
           {alert.status === "resolved" ? (
-            <CheckBadge>
+            <CheckBadge className="animate-pop">
               <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
             </CheckBadge>
           ) : (
-            <span className="inline-flex size-6 items-center justify-center rounded-full bg-white/15">
+            <span className="inline-flex size-6 animate-pop items-center justify-center rounded-full bg-white/15">
               <X aria-hidden="true" className="size-3.5" />
             </span>
           )}
@@ -257,9 +275,14 @@ function reachText(attempt: RingAttempt): string {
 const rowClass = "flex items-start gap-3 border-t border-white/[0.06] py-3 first:border-t-0";
 const timeClass = "w-[58px] shrink-0 pt-0.5 text-[12px] text-inverse-ink-2 tabular";
 
+const RECENT_ATTEMPTS = 8;
+
 function RingTimeline({ alert, now }: { alert: Alert; now: number }) {
+  const [showAll, setShowAll] = useState(false);
   const missed = missedAttempts(alert).length;
   const round = alert.attempts.reduce((highest, attempt) => Math.max(highest, attempt.round), 1);
+  const hidden = showAll ? 0 : Math.max(0, alert.attempts.length - RECENT_ATTEMPTS);
+  const attempts = alert.attempts.slice(hidden);
   return (
     <div className="mt-6 border-t border-white/[0.08] pt-5">
       <div className="flex items-center justify-between">
@@ -290,9 +313,21 @@ function RingTimeline({ alert, now }: { alert: Alert; now: number }) {
             <span className="text-[13px] text-inverse-ink-2">Finding the nearest guard…</span>
           </li>
         )}
-        {alert.attempts.map((attempt, index) => (
+        {hidden > 0 && (
+          <li className={rowClass}>
+            <span className={timeClass} />
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="rounded-md text-[13px] font-semibold text-inverse-ink-2 underline decoration-white/30 underline-offset-4 hover:text-inverse-ink"
+            >
+              Show {hidden} earlier {hidden === 1 ? "ring" : "rings"}
+            </button>
+          </li>
+        )}
+        {attempts.map((attempt, index) => (
           <TimelineRow
-            key={`${attempt.guardId}-${attempt.startedAt}-${index}`}
+            key={`${attempt.guardId}-${attempt.startedAt}-${hidden + index}`}
             attempt={attempt}
             now={now}
           />

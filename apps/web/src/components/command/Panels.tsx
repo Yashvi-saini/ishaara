@@ -17,7 +17,7 @@ import {
 import { startRinging, unlockAudio } from "../../lib/audio";
 import { cn } from "../../lib/cn";
 import { formatElapsed, formatShortTime, formatTime } from "../../lib/format";
-import { Button, Card, CardHead, Chip, Dot, IconTile, Segmented, Select } from "../ui";
+import { Button, Card, CardHead, Chip, CountUp, Dot, IconTile, Segmented, Select } from "../ui";
 
 function median(values: number[]): number | null {
   if (values.length === 0) return null;
@@ -58,7 +58,7 @@ export function Kpi({
       <p className="mt-2.5 text-[15px] font-medium tracking-[-0.02em]">{label}</p>
       <div className="mt-1 flex items-end justify-between">
         <span className="text-[34px] leading-none font-bold tracking-[-0.05em] tabular">
-          {value}
+          <CountUp value={value} />
           <span className="text-[17px] font-semibold text-ink-3">/{of}</span>
         </span>
         {children}
@@ -104,7 +104,7 @@ export function StatStrip({
                 item.hot && "text-accent-ink",
               )}
             >
-              {item.value}
+              <CountUp value={item.value} />
             </dd>
             <dd className="mt-1.5 truncate text-[12px] text-ink-3">{item.sub}</dd>
           </div>

@@ -161,8 +161,9 @@ export function CommandPage() {
       {banner && (
         <div
           role="alert"
+          key={`${banner.id}-${banner.status}`}
           className={cn(
-            "mb-3.5 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[18px] px-5 py-4",
+            "mb-3.5 flex animate-deal flex-wrap items-center gap-x-4 gap-y-2 rounded-[18px] px-5 py-4",
             needsResponder(banner) ? "hero-gradient" : "bg-gold/20 text-ink",
           )}
         >
@@ -212,7 +213,10 @@ export function CommandPage() {
 
       <div className="grid grid-cols-1 gap-3.5 xl:grid-cols-12">
         <div
-          className={cn("flex min-w-0 flex-col gap-3.5", busy ? "xl:col-span-7" : "xl:col-span-8")}
+          className={cn(
+            "stagger flex min-w-0 flex-col gap-3.5",
+            busy ? "xl:col-span-7" : "xl:col-span-8",
+          )}
         >
           {busy ? (
             <StatStrip
@@ -224,7 +228,7 @@ export function CommandPage() {
               guardCount={guards.length}
             />
           ) : (
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+            <div className="stagger grid grid-cols-1 gap-3.5 sm:grid-cols-3">
               <Card tone="hero" className="flex min-h-[200px] flex-col justify-between p-2.5">
                 <div className="flex justify-end p-2">
                   <Chip tone="glass" size="sm">
@@ -314,7 +318,7 @@ export function CommandPage() {
 
         <div
           className={cn(
-            "flex min-w-0 flex-col gap-3.5",
+            "stagger flex min-w-0 flex-col gap-3.5",
             busy ? "order-first xl:order-none xl:col-span-5" : "xl:col-span-4",
           )}
         >
