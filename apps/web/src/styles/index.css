@@ -107,7 +107,6 @@
     font-family: var(--font-sans);
     font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
-    transition: background-color 0.3s ease;
   }
 
   ::selection {
@@ -130,6 +129,20 @@
 
   dialog::backdrop {
     background-color: var(--scrim);
+  }
+
+  dialog[open] {
+    animation: dialog-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  dialog[open]::backdrop {
+    animation: fade-in 0.25s ease-out both;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
   }
 }
 
@@ -208,6 +221,67 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  .frame[data-alarm="true"] {
+    animation: halo 2.2s ease-in-out infinite;
+  }
+
+  .tilt {
+    transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 0.3s ease-out;
+  }
+
+  .tilt-layer {
+    --depth: 10px;
+    translate: calc(var(--px, 0) * var(--depth)) calc(var(--py, 0) * var(--depth));
+    transition: translate 0.3s ease-out;
+  }
+
+  .tilt-sheen {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      360px circle at var(--mx, 50%) var(--my, 50%),
+      rgb(255 255 255 / 0.16),
+      transparent 65%
+    );
+  }
+
+  .tilt:hover .tilt-sheen {
+    opacity: 1;
+  }
+
+  .stagger > * {
+    animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .stagger > :nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .stagger > :nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .stagger > :nth-child(4) {
+    animation-delay: 180ms;
+  }
+  .stagger > :nth-child(5) {
+    animation-delay: 240ms;
+  }
+  .stagger > :nth-child(6) {
+    animation-delay: 300ms;
+  }
+  .stagger > :nth-child(7) {
+    animation-delay: 360ms;
+  }
+  .stagger > :nth-child(8) {
+    animation-delay: 420ms;
+  }
+  .stagger > :nth-child(n + 9) {
+    animation-delay: 480ms;
+  }
 }
 
 @keyframes ping-soft {
@@ -238,9 +312,110 @@
     opacity: 0;
     transform: translateY(10px);
   }
-  to {
+}
+
+@keyframes deal {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateX(-12deg) translateY(22px) scale(0.98);
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+@keyframes tick {
+  from {
+    transform: scale(1.22);
+    opacity: 0.5;
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.12);
     opacity: 1;
-    transform: none;
+  }
+}
+
+@keyframes burst {
+  0% {
+    transform: scale(0.3) rotate(-25deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12) rotate(4deg);
+    opacity: 1;
+  }
+}
+
+@keyframes ring-out {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shadow-float {
+  0%,
+  100% {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateX(-50%) scaleX(0.78);
+    opacity: 0.22;
+  }
+}
+
+@keyframes shockwave {
+  from {
+    r: 18;
+    opacity: 0.55;
+  }
+  to {
+    r: 320;
+    opacity: 0;
+  }
+}
+
+@keyframes halo {
+  0%,
+  100% {
+    box-shadow:
+      var(--frame-shadow),
+      inset 0 3px 0 var(--accent),
+      0 0 0 1px rgb(226 88 28 / 0.35),
+      0 0 90px -20px rgb(226 88 28 / 0.5);
+  }
+  50% {
+    box-shadow:
+      var(--frame-shadow),
+      inset 0 3px 0 var(--accent),
+      0 0 0 2px rgb(226 88 28 / 0.6),
+      0 0 140px -20px rgb(226 88 28 / 0.75);
   }
 }
 
@@ -297,18 +472,80 @@
   animation: shake 0.9s ease-in-out infinite;
 }
 
+@utility animate-deal {
+  animation: deal 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@utility animate-tick {
+  animation: tick 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@utility animate-pop {
+  animation: pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@utility animate-burst {
+  animation: burst 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@utility animate-ring-out {
+  animation: ring-out 0.9s ease-out both;
+}
+
+@utility animate-float {
+  animation: float 4.2s ease-in-out infinite;
+}
+
+@utility animate-shadow-float {
+  animation: shadow-float 4.2s ease-in-out infinite;
+}
+
+@utility animate-shockwave {
+  animation: shockwave 1.6s ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-ping-soft {
+  .animate-ping-soft,
+  .animate-ring-out,
+  .animate-shockwave {
     animation: none;
     opacity: 0;
   }
   .animate-breathe,
   .animate-shake,
   .animate-march,
-  .animate-spin {
+  .animate-spin,
+  .animate-tick,
+  .animate-pop,
+  .animate-burst,
+  .animate-float,
+  .animate-shadow-float {
     animation: none;
   }
-  .animate-rise {
+  .animate-rise,
+  .animate-deal,
+  .stagger > * {
     animation: fade-in 0.2s ease-out both;
+  }
+  .tilt {
+    transform: none;
+    transition: none;
+  }
+  .tilt-layer {
+    translate: none;
+  }
+  .tilt-sheen {
+    display: none;
+  }
+  .frame[data-alarm="true"] {
+    animation: none;
+    box-shadow:
+      var(--frame-shadow),
+      inset 0 3px 0 var(--accent),
+      0 0 0 1px rgb(226 88 28 / 0.4);
+  }
+  dialog[open],
+  dialog[open]::backdrop {
+    animation: fade-in 0.15s ease-out both;
   }
 }

@@ -4,6 +4,7 @@ export { Card, CardHead, Deck } from "./Card";
 export type { CardHeadProps, CardProps, CardTone } from "./Card";
 export { Chip } from "./Chip";
 export type { ChipProps, ChipSize, ChipTone } from "./Chip";
+export { CountUp } from "./CountUp";
 export { Segmented, Select, Toggle } from "./Controls";
 export type { SegmentedOption, SelectProps, ToggleProps } from "./Controls";
 export { Dialog } from "./Dialog";

@@ -9,7 +9,7 @@ export interface PageHeadProps {
 
 export function PageHead({ title, lede, chip, aside }: PageHeadProps) {
   return (
-    <header className="flex flex-col gap-4 pt-2 pb-6 md:flex-row md:items-end md:justify-between">
+    <header className="flex animate-rise flex-col gap-4 pt-2 pb-6 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-[34px] leading-none font-medium tracking-[-0.045em] text-balance md:text-[40px]">
