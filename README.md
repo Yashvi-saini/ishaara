@@ -17,9 +17,11 @@ _Ishaara (इशारा) is Hindi for "signal" or "gesture"._ Built for HerHac
 
 The free server sleeps when idle, so the first visit can take about a minute.
 
-| Security dashboard                                                                   | Guard app, ringing                                                           | Guard app, responding                                                                  |
-| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| ![Ishaara Command while a guard is being rung](docs/screenshots/command-ringing.png) | ![Full-screen ring on the guard's phone](docs/screenshots/guard-ringing.png) | ![Guard responding, with guidance and Call 112](docs/screenshots/guard-responding.png) |
+![Ishaara Command while the nearest guard is being rung](docs/screenshots/command-ringing.png)
+
+| Guard app, ringing                                                         | Guard app, on the way                                                               | Ishaara Eye on a phone                                            |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| ![Ring countdown on the guard's phone](docs/screenshots/guard-ringing.png) | ![Guard on the way, with the incident steps](docs/screenshots/guard-responding.png) | ![Eye watching on a phone camera](docs/screenshots/eye-phone.png) |
 
 ## Contents
 
@@ -64,7 +66,7 @@ It means **"reach out to me safely"**, not "call the police now". So Ishaara's f
 A student is followed near the campus parking at 10:30 pm and cannot safely use her phone.
 
 1. **She makes the signal** towards the camera at the parking help point.
-2. **Ishaara Eye sees it.** The browser on the camera device runs Google's MediaPipe hand tracker in a background worker, about 30 times a second. It finds 21 points on each hand; no face is analysed and nothing is recorded.
+2. **Ishaara Eye sees it.** The browser on the camera device runs Google's MediaPipe hand tracker on the GPU in a background worker, on every new camera frame. It finds 21 points on each hand; no face is analysed and nothing is recorded.
 3. **Two shapes, in order.** Ishaara's own rules check for an open palm with the thumb tucked in (held for 5 frames), then a closed hand over the thumb (held for 5 frames) within 2 seconds. A normal fist, a wave or a thumbs-up does not count, and each hand is tracked separately so two people cannot combine their movements.
 4. **One snapshot is sent.** The camera sends a single JPEG and its location ("Parking, camera 4") to the server. The camera then waits 30 seconds before it can send another, so one gesture makes one alert.
 5. **Security sees it at once.** On Ishaara Command, the parking camera turns red on the campus map, a red banner names the location, and the alert card shows the snapshot and a running timer. An optional alarm sound plays until a guard confirms.
@@ -86,11 +88,19 @@ Every step above is covered by automated tests, and the whole chain has been run
 | `/guard`   | Guard app       | Guards, on a phone       | Start shift, full-screen ring, one-tap "I'm going", response guidance                   |
 | `/learn`   | Learn           | Students                 | The signal in three illustrated steps, with webcam practice that says "Recognised"      |
 
-| Home                                    | Learn (phone)                             | Ishaara Eye                           |
-| --------------------------------------- | ----------------------------------------- | ------------------------------------- |
-| ![Home page](docs/screenshots/home.png) | ![Learn page](docs/screenshots/learn.png) | ![Eye page](docs/screenshots/eye.png) |
+| Home                                                      | Learn (phone)                                                   |
+| --------------------------------------------------------- | --------------------------------------------------------------- |
+| ![Home overview with the hero](docs/screenshots/home.png) | ![Learn, the signal in three forms](docs/screenshots/learn.png) |
 
-The Eye screenshot uses Chrome's test camera, which shows a green test pattern.
+| Ishaara Eye, watching                              | Ishaara Eye, signal sent                                              |
+| -------------------------------------------------- | --------------------------------------------------------------------- |
+| ![Eye watching a camera](docs/screenshots/eye.png) | ![Eye after the signal is sent](docs/screenshots/eye-signal-sent.png) |
+
+| Command, guard on the way                                                      |
+| ------------------------------------------------------------------------------ |
+| ![Command once a guard has confirmed](docs/screenshots/command-responding.png) |
+
+The screenshots use a plain test feed in place of a real camera, so the snapshot shows an empty grey scene.
 
 ## Architecture
 
@@ -278,6 +288,7 @@ ishaara/
 
 ## Limits and roadmap
 
+- On phones, Eye tracks one hand at a time and uses a smaller camera frame so detection keeps up with the camera. Laptops track two hands.
 - Works best within a few metres of the camera, so cameras go at eye-level help points: gates, lifts, hostel entrances, parking exits.
 - Alerts are kept in memory. A real deployment would add a database and logins for security staff.
 - Next: a pilot on one campus, then college buses and cab dashcams, a video-call extension for help at home, and public places with venue security.

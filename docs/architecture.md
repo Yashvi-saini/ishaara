@@ -32,13 +32,16 @@ The camera device decides whether a signal happened. The server only ever receiv
 main thread                                      Web Worker
 -----------                                      ----------
 <video> from getUserMedia
-  every frame: createImageBitmap (640 px wide) --> HandLandmarker.detectForVideo
-                                              <--  21 landmarks per hand (up to 2 hands)
+  each new camera frame: createImageBitmap  -->  HandLandmarker.detectForVideo (GPU, CPU fallback)
+                                              <--  21 landmarks per hand
   createSignalDetector().update(hands, time)
   on "signal": one JPEG snapshot --> POST /api/alerts
 ```
 
-- **MediaPipe runs in a Web Worker**, so detection never freezes the page. The worker asks for the next frame only after finishing the last one, which keeps the rate near 30 frames per second without a queue building up.
+- **MediaPipe runs in a Web Worker**, so detection never freezes the page. Only one frame is in flight at a time, and the next one is taken as soon as the result is back and the camera has a new frame (`requestVideoFrameCallback`), so the same frame is never analysed twice and results are drawn as soon as they arrive.
+- **GPU first.** The worker starts the hand landmarker with the GPU delegate and runs one warm-up frame. If that fails, the page starts a fresh worker on the CPU delegate (MediaPipe cannot create a second landmarker in the same worker) and remembers the failure for the rest of the session.
+- **Phone profile.** On touch devices (`(hover: none) and (pointer: coarse)`), `lib/camera/device.ts` asks for a 640×480 camera at 30 fps, sends frames at most 480 px on the long side, and tracks one hand. With `numHands: 2` MediaPipe reruns palm detection on every frame until it sees two hands, which was the main cost on phones. Laptops ask for 1280×720, 640 px frames and two hands. Frames are scaled by the long side, so portrait phone video is no longer sent oversized.
+- **No live blur over video on phones.** The pills on the camera preview drop `backdrop-filter` on touch devices, and the app frame's alarm glow is static there, because both forced a repaint on every camera frame.
 - **Mirroring.** Only the on-screen `<video>` and the tracking overlay are mirrored with CSS. The frame given to MediaPipe is never flipped.
 - **Model files ship with the app.** `public/mediapipe/hand_landmarker.task` is committed. The WebAssembly runtime is copied from `node_modules` into `public/mediapipe/wasm` by `scripts/copy-mediapipe.mjs` before every dev run and build, so the version always matches the installed package and nothing is loaded from a CDN.
 - **Snapshot.** The single image is taken from the same frame as the signal, scaled to 640 px wide, JPEG quality 0.75 (around 40 to 80 KB).

@@ -54,7 +54,7 @@ MediaPipe landmarks: 0 wrist, 4 thumb tip, 8/12/16/20 fingertips, 6/10/14/18 mid
 - State machine, one per hand: Shape A held 5 frames, then Shape B held 5 frames within 2000 ms, emits `signal`. Then a cooldown per camera: 30 s, or 5 s in demo mode.
 - API: `createSignalDetector(config)` with `update(hands, timestamp)` returning events.
 - Tests with landmark fixtures: valid signal, normal fist with the thumb outside (must not trigger), open palm only, timeout, cooldown.
-- HandLandmarker settings: `runningMode: "VIDEO"`, `numHands: 2`, in a Web Worker.
+- HandLandmarker settings: `runningMode: "VIDEO"`, GPU delegate with CPU fallback, in a Web Worker. `numHands: 2` on laptops, 1 on phones (`lib/camera/device.ts`), because MediaPipe reruns palm detection every frame until it sees `numHands` hands.
 - Mirror only the on-screen preview, never the frame given to MediaPipe.
 
 ## Server and escalation
