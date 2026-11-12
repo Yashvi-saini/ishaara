@@ -219,7 +219,7 @@ Notes:
 
 ## Install as an app
 
-Ishaara is a progressive web app. On a phone, open `/guard` in Chrome and tap **Install the Guard app on this phone** (or use **Add to home screen**). On a laptop, use the install icon in the address bar. The installed app has shortcuts to Guard, Command, Eye and Learn. Installing needs https, so use the deployed site.
+Ishaara is a progressive web app. On a phone or laptop, open the site in Chrome or Edge and tap **Install app** at the top of any page. If the button is not there, the app is already installed or the browser does not offer installs: use the browser menu's **Add to home screen**, or on iPhone, Share then **Add to Home Screen**. On a laptop, use the install icon in the address bar. The installed app has shortcuts to Guard, Command, Eye and Learn. Installing needs https, so use the deployed site.
 
 Once installed, the app shell, fonts and hand-tracking model are cached, so pages open quickly. Alerts always go over the network and are never cached.
 
