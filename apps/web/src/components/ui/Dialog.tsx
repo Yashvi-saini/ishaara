@@ -34,23 +34,21 @@ export function Dialog({ open, onClose, title, description, children, footer }: 
       onClick={(event) => {
         if (event.target === ref.current) onClose();
       }}
-      className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-md border border-line bg-surface p-0 text-ink"
+      className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-[26px] bg-card p-0 text-ink shadow-[0_40px_80px_-30px_rgb(0_0_0/0.45)]"
     >
-      <div className="p-5">
-        <h2 id={titleId} className="text-base font-semibold">
+      <div className="p-6">
+        <h2 id={titleId} className="text-[22px] font-medium tracking-[-0.035em]">
           {title}
         </h2>
         {description !== undefined && (
-          <p id={descriptionId} className="mt-2 text-sm text-ink-muted">
+          <p id={descriptionId} className="mt-2 text-[14px] leading-relaxed text-ink-2">
             {description}
           </p>
         )}
         {children !== undefined && <div className="mt-4">{children}</div>}
       </div>
       {footer !== undefined && (
-        <div className="flex justify-end gap-2 border-t border-line bg-canvas px-5 py-3">
-          {footer}
-        </div>
+        <div className="flex flex-wrap justify-end gap-2 px-6 pb-6">{footer}</div>
       )}
     </dialog>
   );

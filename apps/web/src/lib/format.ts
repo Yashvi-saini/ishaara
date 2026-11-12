@@ -33,3 +33,14 @@ const shortClock = new Intl.DateTimeFormat("en-IN", {
 export function formatShortTime(timestamp: number): string {
   return shortClock.format(timestamp);
 }
+
+const longDateFormat = new Intl.DateTimeFormat("en-IN", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+export function formatLongDate(timestamp: number): string {
+  return longDateFormat.format(timestamp);
+}
