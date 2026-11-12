@@ -14,6 +14,7 @@ import {
   type GuardState,
 } from "../../lib/alerts";
 import { cn } from "../../lib/cn";
+import { useReducedMotion } from "../../lib/motion";
 import { Button, Chip, Dot } from "../ui";
 
 type Selection = { kind: "camera"; id: string } | { kind: "guard"; id: string } | null;
@@ -84,6 +85,7 @@ export function CampusMap({
   onSelectAlert,
 }: CampusMapProps) {
   const [selected, setSelected] = useState<Selection>(null);
+  const reducedMotion = useReducedMotion();
   const { map } = campus;
   const centre = { x: map.width / 2, y: map.height / 2 };
   const alertByCamera = new Map<string, Alert>();
@@ -313,6 +315,24 @@ export function CampusMap({
                 strokeLinecap="round"
                 className="animate-march"
               />
+              {!reducedMotion && (
+                <circle
+                  r={responding ? 6 : 5}
+                  fill={responding ? "var(--gold)" : "var(--accent)"}
+                  stroke="var(--card)"
+                  strokeWidth="2"
+                >
+                  <animateMotion
+                    dur={responding ? "2.4s" : "1.3s"}
+                    repeatCount="indefinite"
+                    path={
+                      responding
+                        ? `M ${guard.x} ${guard.y} L ${camera.x} ${camera.y}`
+                        : `M ${camera.x} ${camera.y} L ${guard.x} ${guard.y}`
+                    }
+                  />
+                </circle>
+              )}
               <g transform={`translate(${midX}, ${midY})`}>
                 <rect
                   x={responding ? -50 : -64}
@@ -363,8 +383,18 @@ export function CampusMap({
                 stroke="var(--accent)"
                 strokeWidth="2"
               />
-              {hot && (
+              {hot && alert && (
                 <>
+                  <circle
+                    key={`wave-${alert.id}`}
+                    cx={camera.x}
+                    cy={camera.y}
+                    r="18"
+                    fill="none"
+                    stroke="var(--accent)"
+                    strokeWidth="2"
+                    className="animate-shockwave"
+                  />
                   <circle
                     cx={camera.x}
                     cy={camera.y}
@@ -373,6 +403,19 @@ export function CampusMap({
                     opacity="0.35"
                     className="animate-ping-soft"
                     style={{ transformBox: "fill-box", transformOrigin: "center" }}
+                  />
+                  <circle
+                    cx={camera.x}
+                    cy={camera.y}
+                    r="20"
+                    fill="var(--accent)"
+                    opacity="0.25"
+                    className="animate-ping-soft"
+                    style={{
+                      transformBox: "fill-box",
+                      transformOrigin: "center",
+                      animationDelay: "0.6s",
+                    }}
                   />
                   <circle
                     cx={camera.x}
