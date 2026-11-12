@@ -76,7 +76,7 @@ The UI follows the Ishaara Figma Make design (file `QIGtlL1qwkIfY84DC8ljBu`, "is
 - Colour carries meaning: orange is unconfirmed or ringing, gold is responding or confirmed, ink is resolved, muted grey is false alarm or offline. Always pair colour with text.
 - Manrope (bundled with `@fontsource/manrope`), sentence case, tight negative tracking on headings, tabular numbers for times and counts.
 - Rounded shapes: 26px cards, 18px insets, pill buttons and chips. Lucide icons at 14 to 20px with a text label.
-- Motion with purpose only: page rise, alert ping, ringing breathe, route march. All of it stops under `prefers-reduced-motion`.
+- Motion with purpose only, built from CSS and SVG with no animation libraries: cards rise in a stagger, the hero and Learn cards tilt in 3D under the mouse, the signal hand morphs palm to thumb to fold, numbers count up, the theme toggle reveals in a circle, a new alert sends a shockwave from its map pin and deals in its card, the app frame glows orange while an alert is unconfirmed, and route markers travel between guard and camera. Helpers live in `apps/web/src/lib/motion.ts`. All of it stops or becomes a plain fade under `prefers-reduced-motion`.
 - WCAG AA contrast in both themes, visible keyboard focus, labelled controls.
 - Command is desktop-first. Guard and Learn are mobile-first.
 - Real empty, loading and error states in plain words, such as "No active alerts. 6 of 6 cameras online."

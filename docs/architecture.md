@@ -110,7 +110,22 @@ All colours are CSS variables in `apps/web/src/styles/index.css`, defined once f
 
 Status meaning: orange is an alert nobody has confirmed yet, gold is a guard responding or a confirmed step, ink is resolved, muted grey is a false alarm or offline.
 
-UI primitives live in `apps/web/src/components/ui`: Button, Card, CardHead, Deck, Chip, Dialog, Dot, Dashes, IconTile, Kbd, Mark, Notice, PageHead, Segmented, Select, ServerProblem, Toggle. The app frame and navigation are in `components/shell/AppShell.tsx`. Every looping animation (alert ping, ringing breathe, route march) stops under `prefers-reduced-motion`.
+UI primitives live in `apps/web/src/components/ui`: Button, Card, CardHead, Deck, Chip, Dialog, Dot, Dashes, IconTile, Kbd, Mark, Notice, PageHead, Segmented, Select, ServerProblem, Toggle. The app frame and navigation are in `components/shell/AppShell.tsx`. ### Motion
+
+Motion is CSS and SVG only, with no animation library, and each effect marks a moment in the alert flow:
+
+| Effect                                       | Where                                    | What it shows                                                                                                   |
+| -------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Signal hand morph                            | Home hero, Learn practice, Eye stage bar | The palm, thumb-tuck and fold poses animate between each other; on Eye the hand follows the live detector state |
+| 3D tilt with depth layers                    | Home hero, Learn step cards              | Cards rotate towards the mouse (mouse only, not touch) with the hand floating above the card                    |
+| Staggered rise and count-up                  | Every page                               | Cards enter one after another; stat numbers count to their value                                                |
+| Circular theme reveal                        | Theme toggle                             | The new theme spreads out from the button (View Transitions API, falls back to an instant switch)               |
+| Shockwave and deal-in                        | Command                                  | A new alert sends a ring across the map from its camera and the alert card drops in with a slight 3D tilt       |
+| Alarm halo                                   | App frame                                | The frame glows orange on every screen while any alert is unconfirmed                                           |
+| Route markers                                | Campus map                               | A dot travels from the camera to the guard being rung, or from the responding guard to the camera               |
+| Status ripple, countdown tick, success burst | Alert card, Guard ring, Eye and Learn    | Confirms a change of state                                                                                      |
+
+The hooks (`useTilt`, `useCountUp`, `useReducedMotion`) are in `apps/web/src/lib/motion.ts`. Under `prefers-reduced-motion` every loop stops, tilt is disabled and entrances become a short fade.
 
 ## Gesture detection
 
